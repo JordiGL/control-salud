@@ -1,61 +1,64 @@
-import { useState, useEffect } from 'react'
-import './App.css'
+import { useState, useEffect, useMemo } from 'react'
+import { auth, db, provider } from './firebaseConfig'
+import { collection, addDoc, onSnapshot, query, orderBy, deleteDoc, doc } from "firebase/firestore";
+import { signInWithPopup, signOut, onAuthStateChanged } from "firebase/auth";
+import Header from './components/Header';
+import Formulario from './components/Formulario';
+import Historial from './components/Historial';
+import Grafica from './components/Grafica';
+import { styles } from './styles/styles';
+
+const EMAIL_ADMIN = "golojodev@gmail.com";
 
 function App() {
-  // Estado para almacenar la lista de registros
-  const [registros, setRegistros] = useState(() => {
-    const guardados = localStorage.getItem('historial_salud');
-    return guardados ? JSON.parse(guardados) : [];
-  });
+  const [registros, setRegistros] = useState([]);
+  const [usuario, setUsuario] = useState(null);
+  const [metricaSeleccionada, setMetricaSeleccionada] = useState(null);
+  const [formData, setFormData] = useState({ tension: '', pulso: '', oxigeno: '', ca125: '', notas: '' });
 
-  // Estado para el formulario
-  const [formData, setFormData] = useState({
-    tension: '', pulso: '', oxigeno: '', ca125: ''
-  });
-
-  // Guardar en localStorage cada vez que cambien los registros
   useEffect(() => {
-    localStorage.setItem('historial_salud', JSON.stringify(registros));
-  }, [registros]);
+    onAuthStateChanged(auth, setUsuario);
+    const q = query(collection(db, "mediciones"), orderBy("timestamp", "asc"));
+    return onSnapshot(q, (snapshot) => {
+      setRegistros(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+    });
+  }, []);
 
-  const manejarCambio = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
+  const esAdmin = usuario && usuario.email === EMAIL_ADMIN;
 
-  const guardarRegistro = (e) => {
+  const guardarRegistro = async (e) => {
     e.preventDefault();
-    const nuevo = {
-      ...formData,
-      id: Date.now(),
-      fecha: new Date().toLocaleString()
-    };
-    setRegistros([nuevo, ...registros]);
-    setFormData({ tension: '', pulso: '', oxigeno: '', ca125: '' });
+    if (!esAdmin) return;
+    await addDoc(collection(db, "mediciones"), { 
+      ...formData, 
+      timestamp: Date.now(), 
+      fecha: new Date().toLocaleDateString(), 
+      hora: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) 
+    });
+    setFormData({ tension: '', pulso: '', oxigeno: '', ca125: '', notas: '' });
   };
 
   return (
-    <div className="App">
-      <h1>Control de Salud - Abuela</h1>
-      
-      <form onSubmit={guardarRegistro} className="formulario">
-        <input name="tension" value={formData.tension} onChange={manejarCambio} placeholder="Tensión (120/80)" required />
-        <input name="pulso" type="number" value={formData.pulso} onChange={manejarCambio} placeholder="Pulso (BPM)" required />
-        <input name="oxigeno" type="number" value={formData.oxigeno} onChange={manejarCambio} placeholder="SpO2 (%)" required />
-        <input name="ca125" type="number" value={formData.ca125} onChange={manejarCambio} placeholder="CA-125 (U/mL)" />
-        <button type="submit">Registrar Hoy</button>
-      </form>
+    <div style={styles.container}>
+      <Header usuario={usuario} login={() => signInWithPopup(auth, provider)} logout={() => signOut(auth)} />
 
-      <div className="historial">
-        {registros.map(reg => (
-          <div key={reg.id} className="tarjeta-registro">
-            <p><strong>Fecha:</strong> {reg.fecha}</p>
-            <p><strong>Tensión:</strong> {reg.tension} | <strong>Pulso:</strong> {reg.pulso}</p>
-            <p><strong>SpO2:</strong> {reg.oxigeno}% | <strong>CA-125:</strong> {reg.ca125 || 'N/A'}</p>
-          </div>
-        ))}
-      </div>
+      <main style={esAdmin ? styles.dashboardAdmin : styles.dashboardPublic}>
+        {esAdmin && <Formulario formData={formData} setFormData={setFormData} guardarRegistro={guardarRegistro} />}
+        
+        <section style={styles.columnaHistorial}>
+          <Historial 
+            registros={registros} 
+            esAdmin={esAdmin} 
+            deleteDoc={deleteDoc} 
+            db={db} 
+            doc={doc}
+            metricaSeleccionada={metricaSeleccionada}
+            setMetricaSeleccionada={setMetricaSeleccionada}
+          />
+        </section>
+      </main>
     </div>
-  )
+  );
 }
 
-export default App
+export default App;

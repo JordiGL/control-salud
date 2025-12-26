@@ -1,68 +1,48 @@
 :root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
-
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
-
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  --container-padding: 20px;
+  --dashboard-columns: 1fr 2fr;
+  --dashboard-gap: 30px;
+  --card-padding: 25px;
+  --form-columns: 1fr 1fr;
+  --form-gap: 15px;
+  --summary-columns: 1fr 1fr 1fr;
+  --summary-gap: 15px;
+  --history-columns: repeat(4, 1fr);
+  --history-card-max: 900px;
+  --history-list-padding: 0px;
+  --stats-nav-gap: 20px;
+  --stats-nav-wrap: nowrap;
+  --header-direction: row;
+  --header-align: center;
+  --header-wrap: nowrap;
+  --header-gap: 0px;
 }
 
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
-}
-a:hover {
-  color: #535bf2;
-}
-
-body {
-  margin: 0;
-  display: flex;
-  place-items: center;
-  min-width: 320px;
-  min-height: 100vh;
-}
-
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
-}
-
-button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  background-color: #1a1a1a;
-  cursor: pointer;
-  transition: border-color 0.25s;
-}
-button:hover {
-  border-color: #646cff;
-}
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
-}
-
-@media (prefers-color-scheme: light) {
+@media (max-width: 900px) {
   :root {
-    color: #213547;
-    background-color: #ffffff;
+    --container-padding: 12px;
+    --dashboard-columns: 1fr;
+    --dashboard-gap: 20px;
+    --card-padding: 20px;
+    --form-columns: 1fr;
+    --form-gap: 12px;
+    --summary-columns: 1fr 1fr;
+    --summary-gap: 12px;
+    --history-columns: 1fr; /* Una columna en pantallas pequeñas */
+    --history-card-max: 100%;
+    --history-list-padding: 12px;
+    --stats-nav-gap: 12px;
+    --stats-nav-wrap: wrap;
+    --header-direction: column;
+    --header-align: flex-start;
+    --header-wrap: wrap;
+    --header-gap: 10px;
   }
-  a:hover {
-    color: #747bff;
-  }
-  button {
-    background-color: #f9f9f9;
+}
+
+@media (max-width: 600px) {
+  :root {
+    --summary-columns: 1fr;
+    --history-columns: 1fr;
   }
 }
