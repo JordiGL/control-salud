@@ -81,16 +81,11 @@ const Grafica = ({ registros, metricaSeleccionada }) => {
         borderBottom: `2px solid ${COLORES_GRAFICA.sistolica}`,
         paddingBottom: '10px'
       }}>
-        Seguimiento de {
-          metricaSeleccionada === 'tension' ? 'Tensión Arterial' :
-          metricaSeleccionada === 'pulso' ? 'Frecuencia Cardíaca' :
-          metricaSeleccionada === 'oxigeno' ? 'Oxígeno (SpO2)' :
-          metricaSeleccionada === 'ca125' ? 'Marcador CA-125' : 
-          metricaSeleccionada
-        }
+        Seguimiento de {metricaSeleccionada.toUpperCase()}
       </div>
 
       <div className="no-print" style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '25px', alignItems: 'center' }}>
+        {/* Filtros de tiempo y franja */}
         <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', justifyContent: 'center' }}>
           {['semana', 'mes', 'todo'].map(r => (
             <button key={r} onClick={() => setRangoTiempo(r)} style={getEstiloBoton(r, rangoTiempo)}>
@@ -102,13 +97,30 @@ const Grafica = ({ registros, metricaSeleccionada }) => {
           <button onClick={() => setFranjaHoraria('mañana')} style={getEstiloBoton('mañana', franjaHoraria, 'am')}>AM</button>
           <button onClick={() => setFranjaHoraria('tarde')} style={getEstiloBoton('tarde', franjaHoraria, 'pm')}>PM</button>
         </div>
+
+        {/* SELECT DE CONTEXTO RESTAURADO */}
+        <div style={{ width: '100%', maxWidth: '320px' }}>
+          <select 
+            style={{...styles.selector, fontSize: '0.85rem', padding: '8px 12px'}} 
+            value={etiquetaFiltro}
+            onChange={(e) => setEtiquetaFiltro(e.target.value)}
+          >
+            <option value="todas">Filtrar por contexto</option>
+            <option value="reposo">En reposo</option>
+            <option value="ejercicio">Post-ejercicio</option>
+            <option value="ayunas">En ayunas</option>
+            <option value="medicacion">Tras medicación</option>
+            <option value="quimio">Post-quimioterapia</option>
+            <option value="estres">Momento de estrés</option>
+          </select>
+        </div>
       </div>
 
       {datosGrafica.length > 0 ? (
         <>
           <div style={{ height: 300 }}>
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={datosGrafica} margin={{ top: 10, right: 30, left: 0, bottom: 20 }}>
+              <AreaChart data={datosGrafica} margin={{ top: 10, right: 30, left: 0, bottom: 30 }}>
                 <defs>
                   <linearGradient id="colorSis" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor={COLORES_GRAFICA.sistolica} stopOpacity={0.1}/>
@@ -131,7 +143,8 @@ const Grafica = ({ registros, metricaSeleccionada }) => {
                           </g>
                         );
                     }}
-                />                <YAxis axisLine={false} tickLine={false} domain={['auto', 'auto']} tick={{fontSize: 10, fill: COLORES_GRAFICA.texto}} />
+                />
+                <YAxis axisLine={false} tickLine={false} domain={['auto', 'auto']} tick={{fontSize: 10, fill: COLORES_GRAFICA.texto}} />
                 <Tooltip itemSorter={(item) => (item.dataKey === 'sistolica' ? -1 : 1)} contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} />
                 
                 {esTension ? (
@@ -154,20 +167,16 @@ const Grafica = ({ registros, metricaSeleccionada }) => {
                     <div style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: COLORES_GRAFICA.sistolica }}></div>
                     <div style={{ ...styles.statSummaryLabel, color: COLORES_GRAFICA.texto, fontSize: '0.7rem', fontWeight: 'bold' }}>SISTÓLICA</div>
                   </div>
-                  {/* QUITAMOS EL BORDE SUPERIOR AQUÍ */}
                   <div style={{...styles.statsSummaryGrid, marginTop: '0', paddingTop: '5px', borderTop: 'none'}}>
                     <div style={styles.statSummaryItem}><span style={styles.statSummaryLabel}>MÁX</span><strong style={styles.statSummaryValue}>{stats.sis.max}</strong></div>
                     <div style={styles.statSummaryItem}><span style={styles.statSummaryLabel}>PROM</span><strong style={{...styles.statSummaryValue, color: '#1e293b'}}>{stats.sis.avg}</strong></div>
                     <div style={styles.statSummaryItem}><span style={styles.statSummaryLabel}>MÍN</span><strong style={styles.statSummaryValue}>{stats.sis.min}</strong></div>
                   </div>
-
                   <div style={{ height: '1px', backgroundColor: '#f1f5f9', margin: '12px 0' }} className="no-print" />
-                  
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '8px', gap: '8px' }}>
                     <div style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: COLORES_GRAFICA.diastolica }}></div>
                     <div style={{ ...styles.statSummaryLabel, color: COLORES_GRAFICA.texto, fontSize: '0.7rem', fontWeight: 'bold' }}>DIASTÓLICA</div>
                   </div>
-                  {/* QUITAMOS EL BORDE SUPERIOR AQUÍ TAMBIÉN */}
                   <div style={{...styles.statsSummaryGrid, marginTop: '0', paddingTop: '5px', borderTop: 'none'}}>
                     <div style={styles.statSummaryItem}><span style={styles.statSummaryLabel}>MÁX</span><strong style={styles.statSummaryValue}>{stats.dia.max}</strong></div>
                     <div style={styles.statSummaryItem}><span style={styles.statSummaryLabel}>PROM</span><strong style={{...styles.statSummaryValue, color: '#1e293b'}}>{stats.dia.avg}</strong></div>
@@ -175,14 +184,11 @@ const Grafica = ({ registros, metricaSeleccionada }) => {
                   </div>
                 </>
               ) : (
-                <>
-                  {/* QUITAMOS EL BORDE SUPERIOR AQUÍ PARA EL PULSO/OXÍGENO */}
-                  <div style={{...styles.statsSummaryGrid, marginTop: '0', paddingTop: '5px', borderTop: 'none'}}>
-                    <div style={styles.statSummaryItem}><span style={styles.statSummaryLabel}>MÁXIMO</span><strong style={styles.statSummaryValue}>{stats.normal.max}</strong></div>
-                    <div style={styles.statSummaryItem}><span style={styles.statSummaryLabel}>PROMEDIO</span><strong style={{ ...styles.statSummaryValue, color: '#1e293b' }}>{stats.normal.avg}</strong></div>
-                    <div style={styles.statSummaryItem}><span style={styles.statSummaryLabel}>MÍNIMO</span><strong style={styles.statSummaryValue}>{stats.normal.min}</strong></div>
-                  </div>
-                </>
+                <div style={{...styles.statsSummaryGrid, marginTop: '0', paddingTop: '5px', borderTop: 'none'}}>
+                  <div style={styles.statSummaryItem}><span style={styles.statSummaryLabel}>MÁXIMO</span><strong style={styles.statSummaryValue}>{stats.normal.max}</strong></div>
+                  <div style={styles.statSummaryItem}><span style={styles.statSummaryLabel}>PROMEDIO</span><strong style={{ ...styles.statSummaryValue, color: '#1e293b' }}>{stats.normal.avg}</strong></div>
+                  <div style={styles.statSummaryItem}><span style={styles.statSummaryLabel}>MÍNIMO</span><strong style={styles.statSummaryValue}>{stats.normal.min}</strong></div>
+                </div>
               )}
             </div>
           )}
