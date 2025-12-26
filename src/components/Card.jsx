@@ -5,6 +5,11 @@ import ModalConfirmacion from './ModalConfirmacion';
 import ModalEditar from './ModalEditar';
 import { updateDoc } from 'firebase/firestore';
 
+// Iconos para mayor claridad visual
+const IconoTension = () => <span style={{ marginRight: '8px' }}>📈</span>;
+const IconoPulso = () => <span style={{ marginRight: '8px' }}>❤️</span>;
+const IconoOxigeno = () => <span style={{ marginRight: '8px' }}>🌬️</span>;
+
 const coloresEtiquetas = {
   reposo: { bg: '#dcfce7', text: '#166534', label: 'En Reposo' },
   ejercicio: { bg: '#fee2e2', text: '#991b1b', label: 'Post-Ejercicio' },
@@ -18,6 +23,45 @@ const Card = ({ reg, esAdmin, deleteDoc, db, doc }) => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
 
+  // --- LÓGICA DE COLORES DE SALUD ---
+  const getSisColor = (sis) => {
+    const s = Number(sis);
+    if (s >= 140) return '#ef4444';
+    if (s >= 130) return '#f59e0b';
+    return '#1e293b';
+  };
+
+  const getDiaColor = (dia) => {
+    const d = Number(dia);
+    if (d >= 90) return '#ef4444';
+    if (d >= 85) return '#f59e0b';
+    return '#1e293b';
+  };
+
+  const getPulsoColor = (val) => {
+    const p = Number(val);
+    if (!p) return '#1e293b';
+    return (p < 60 || p > 100) ? '#f59e0b' : '#1e293b';
+  };
+
+  const getOxigenoColor = (val) => {
+    const o = Number(val);
+    if (!o) return '#1e293b';
+    return o < 95 ? '#ef4444' : '#1e293b';
+  };
+
+  // --- LÓGICA DE BORDE LATERAL ---
+  const [sisVal, diaVal] = reg.tension ? reg.tension.split('/').map(Number) : [0, 0];
+  const pulsVal = Number(reg.pulso);
+  const o2Val = Number(reg.oxigeno);
+
+  let colorBordeSide = '#10b981';
+  if (sisVal >= 140 || diaVal >= 90 || (o2Val > 0 && o2Val < 95)) {
+    colorBordeSide = '#ef4444';
+  } else if (sisVal >= 130 || diaVal >= 85 || (pulsVal > 0 && (pulsVal < 60 || pulsVal > 100))) {
+    colorBordeSide = '#f59e0b';
+  }
+
   const handleEditar = async (nuevosDatos) => {
     try {
       const docRef = doc(db, "mediciones", reg.id);
@@ -29,75 +73,141 @@ const Card = ({ reg, esAdmin, deleteDoc, db, doc }) => {
   };
 
   return (
-    <div style={styles.historyCard}>
-      <div style={styles.historyHeader}>
-        {/* FECHA: Eliminamos el badge solo para impresión mediante clases CSS */}
-        <span className="fecha-badge-print" style={styles.dateBadge}>
-          {reg.fecha} · {reg.hora}
+    <div 
+      style={{
+        ...styles.historyCard,
+        borderLeft: `6px solid ${colorBordeSide}`,
+        backgroundColor: '#ffffff',
+        cursor: 'default',
+        position: 'relative' // Asegura que los modales se posicionen correctamente si son relativos
+      }}
+    >
+      {/* CABECERA: Fecha y Acciones */}
+      <div style={{
+        ...styles.historyHeader,
+        borderBottom: '1px solid #f1f5f9',
+        paddingBottom: '10px',
+        marginBottom: '15px'
+      }}>
+        <span style={{
+          ...styles.dateBadge,
+          backgroundColor: '#f8fafc',
+          color: '#64748b',
+          fontSize: '0.75rem',
+          padding: '4px 8px',
+          borderRadius: '4px',
+          border: '1px solid #e2e8f0'
+        }}>
+          {reg.fecha} <span style={{ margin: '0 4px', opacity: 0.5 }}>|</span> {reg.hora}
         </span>
         
-        <div className="no-print">
+        <div className="no-print" style={{ display: 'flex', gap: '8px' }}>
           {esAdmin && (
-            <div style={{ display: 'flex', gap: '5px' }}>
+            <>
               <BotonEditar onClick={() => setShowEditModal(true)} />
               <BotonEliminar onClick={() => setShowDeleteModal(true)} />
-            </div>
+            </>
           )}
         </div>
       </div>
       
+      {/* GRID DE DATOS */}
       <div style={styles.historyGrid}>
         {reg.tension && (
-          <div style={styles.dataBlock}>
-            <span style={styles.dataLabel}>Tensión</span>
-            <strong style={styles.dataValue}>{reg.tension}</strong>
+          <div style={{...styles.dataBlock, textAlign: 'left'}}>
+            <span style={{...styles.dataLabel, display: 'flex', alignItems: 'center'}}>
+              <IconoTension /> Tensión
+            </span>
+            <div style={{ display: 'flex', gap: '2px', alignItems: 'baseline' }}>
+              <strong style={{...styles.dataValue, color: getSisColor(sisVal), fontSize: '1.25rem'}}>
+                {sisVal}
+              </strong>
+              <span style={{color: '#94a3b8'}}>/</span>
+              <strong style={{...styles.dataValue, color: getDiaColor(diaVal), fontSize: '1.25rem'}}>
+                {diaVal}
+              </strong>
+            </div>
           </div>
         )}
+        
         {reg.pulso && (
-          <div style={styles.dataBlock}>
-            <span style={styles.dataLabel}>Pulso</span>
-            <strong style={styles.dataValue}>{reg.pulso} <small style={styles.unit}>BPM</small></strong>
+          <div style={{...styles.dataBlock, textAlign: 'left'}}>
+            <span style={{...styles.dataLabel, display: 'flex', alignItems: 'center'}}>
+              <IconoPulso /> Pulso
+            </span>
+            <strong style={{...styles.dataValue, color: getPulsoColor(reg.pulso), fontSize: '1.25rem'}}>
+              {reg.pulso} <small style={{fontSize: '0.7rem', fontWeight: 'normal', color: '#94a3b8'}}>BPM</small>
+            </strong>
           </div>
         )}
+
         {reg.oxigeno && (
-          <div style={styles.dataBlock}>
-            <span style={styles.dataLabel}>Oxígeno</span>
-            <strong style={styles.dataValue}>{reg.oxigeno}<small style={styles.unit}>%</small></strong>
-          </div>
-        )}
-        {reg.ca125 && (
-          <div style={{...styles.dataBlock, borderLeft: '2px solid #e0e7ff'}}>
-            <span style={styles.dataLabel}>CA-125</span>
-            <strong style={{...styles.dataValue, color:'#004a99'}}>{reg.ca125} <small style={styles.unit}>U/mL</small></strong>
+          <div style={{...styles.dataBlock, textAlign: 'left'}}>
+            <span style={{...styles.dataLabel, display: 'flex', alignItems: 'center'}}>
+              <IconoOxigeno /> SpO2
+            </span>
+            <strong style={{...styles.dataValue, color: getOxigenoColor(reg.oxigeno), fontSize: '1.25rem'}}>
+              {reg.oxigeno}<small style={{fontSize: '0.7rem', fontWeight: 'normal', color: '#94a3b8'}}>%</small>
+            </strong>
           </div>
         )}
       </div>
 
-      {reg.etiqueta && coloresEtiquetas[reg.etiqueta] && (
-        <div style={{ marginBottom: '8px', marginTop: '10px' }}>
+      {/* SECCIÓN CA-125 */}
+      {reg.ca125 && (
+        <div style={{
+          marginTop: '15px',
+          padding: '10px',
+          backgroundColor: '#f0f7ff',
+          borderRadius: '8px',
+          border: '1px solid #e0e7ff',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center'
+        }}>
+          <span style={{ color: '#004a99', fontSize: '0.75rem', fontWeight: '600' }}>Marcador CA-125</span>
+          <strong style={{ color: '#004a99', fontSize: '1.1rem' }}>
+            {reg.ca125} <small style={{ fontSize: '0.6rem' }}>U/mL</small>
+          </strong>
+        </div>
+      )}
+
+      {/* ETIQUETA Y NOTAS */}
+      <div style={{ marginTop: '15px' }}>
+        {reg.etiqueta && coloresEtiquetas[reg.etiqueta] && (
           <span style={{
-            padding: '3px 10px',
-            borderRadius: '6px',
+            padding: '4px 12px',
+            borderRadius: '20px',
             fontSize: '0.65rem',
             fontWeight: '700',
             backgroundColor: coloresEtiquetas[reg.etiqueta].bg,
             color: coloresEtiquetas[reg.etiqueta].text,
             textTransform: 'uppercase',
             display: 'inline-block',
-            WebkitPrintColorAdjust: 'exact',
-            printColorAdjust: 'exact'
+            marginBottom: '10px'
           }}>
             {coloresEtiquetas[reg.etiqueta].label}
           </span>
-        </div>
-      )}
-      
-      {reg.notas && (
-        <div style={{...styles.notaBox, color: '#333', borderLeft: '3px solid #004a99'}}>
-          {reg.notas}
-        </div>
-      )}
+        )}
+        
+        {reg.notas && (
+          <div style={{
+            ...styles.notaBox,
+            marginTop: '8px',
+            fontSize: '0.85rem',
+            backgroundColor: '#f8fafc',
+            borderLeft: '3px solid #cbd5e1',
+            borderRadius: '0 8px 8px 0',
+            padding: '8px 12px',
+            color: '#475569',
+            lineHeight: '1.4'
+          }}>
+            {reg.notas}
+          </div>
+        )}
+      </div>
 
+      {/* MODALES: Ahora se renderizarán por encima sin conflictos */}
       <ModalConfirmacion 
         isOpen={showDeleteModal} 
         onConfirm={() => deleteDoc(doc(db, "mediciones", reg.id))} 
