@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
 import { styles } from '../styles/styles';
+import MenuExportar from './MenuExportar';
 
 const Grafica = ({ registros, metricaSeleccionada }) => {
   const [rangoTiempo, setRangoTiempo] = useState('todo'); 
@@ -9,34 +10,25 @@ const Grafica = ({ registros, metricaSeleccionada }) => {
   
   const esTension = metricaSeleccionada === 'tension';
 
-  // 1. Lógica de Filtrado Combinada (Tiempo + AM/PM + Etiquetas)
   const registrosFiltrados = useMemo(() => {
     let filtrados = registros;
-
-    // Filtro de Rango Temporal
     if (rangoTiempo !== 'todo') {
       const ahora = Date.now();
       const limite = rangoTiempo === 'semana' ? ahora - 604800000 : ahora - 2592000000;
       filtrados = filtrados.filter(reg => reg.timestamp >= limite);
     }
-
-    // Filtro de Franja (Mañana: 00:00-11:59 / Tarde: 12:00-23:59)
     if (franjaHoraria !== 'todo') {
       filtrados = filtrados.filter(reg => {
         const horaNumerica = parseInt(reg.hora.split(':')[0], 10);
         return franjaHoraria === 'mañana' ? (horaNumerica >= 0 && horaNumerica < 12) : (horaNumerica >= 12 && horaNumerica < 24);
       });
     }
-
-    // Filtro de Etiquetas
     if (etiquetaFiltro !== 'todas') {
       filtrados = filtrados.filter(reg => reg.etiqueta === etiquetaFiltro);
     }
-
     return filtrados;
   }, [registros, rangoTiempo, franjaHoraria, etiquetaFiltro]);
 
-  // 2. Procesamiento de datos para Recharts
   const datosGrafica = useMemo(() => {
     return registrosFiltrados.map(r => ({
       tiempo: `${r.fecha.substring(0, 5)} ${r.hora}`,
@@ -46,16 +38,13 @@ const Grafica = ({ registros, metricaSeleccionada }) => {
     })).filter(d => esTension ? !isNaN(d.sistolica) : !isNaN(d.valor));
   }, [registrosFiltrados, esTension, metricaSeleccionada]);
 
-  // 3. Cálculo de Estadísticas Dinámicas
   const stats = useMemo(() => {
     if (datosGrafica.length === 0) return null;
-
     const calcularValores = (arr) => ({
       max: Math.max(...arr),
       min: Math.min(...arr),
       avg: Math.round(arr.reduce((a, b) => a + b, 0) / arr.length)
     });
-
     if (esTension) {
       return {
         sis: calcularValores(datosGrafica.map(d => d.sistolica)),
@@ -65,7 +54,6 @@ const Grafica = ({ registros, metricaSeleccionada }) => {
     return { normal: calcularValores(datosGrafica.map(d => d.valor)) };
   }, [datosGrafica, esTension]);
 
-  // Estilo dinámico para botones de filtro
   const getEstiloBoton = (tipo, valorActual, variante = 'normal') => {
     const isActive = tipo === valorActual;
     const estiloVariante = variante === 'am' ? styles.btnAM : variante === 'pm' ? styles.btnPM : styles.btnFiltroActivo;
@@ -74,10 +62,27 @@ const Grafica = ({ registros, metricaSeleccionada }) => {
 
   return (
     <div style={styles.chartCard}>
-      {/* --- BLOQUE DE FILTROS --- */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '25px', alignItems: 'center' }}>
-        
-        {/* Fila 1: Tiempo y Franja */}
+      <div className="print-only" style={{
+        display: 'none', 
+        textAlign: 'center',
+        marginBottom: '20px',
+        fontSize: '20px',
+        fontWeight: 'bold',
+        color: '#004a99',
+        textTransform: 'uppercase',
+        borderBottom: '1px solid #eee',
+        paddingBottom: '10px'
+      }}>
+        Seguimiento de {
+          metricaSeleccionada === 'tension' ? 'Tensión Arterial' :
+          metricaSeleccionada === 'pulso' ? 'Frecuencia Cardíaca (Pulso)' :
+          metricaSeleccionada === 'oxigeno' ? 'Saturación de Oxígeno (SpO2)' :
+          metricaSeleccionada === 'ca125' ? 'Marcador Tumoral CA-125' : 
+          metricaSeleccionada
+        }
+      </div>
+
+      <div className="no-print" style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '25px', alignItems: 'center' }}>
         <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', justifyContent: 'center' }}>
           {['semana', 'mes', 'todo'].map(r => (
             <button key={r} onClick={() => setRangoTiempo(r)} style={getEstiloBoton(r, rangoTiempo)}>
@@ -89,41 +94,35 @@ const Grafica = ({ registros, metricaSeleccionada }) => {
           <button onClick={() => setFranjaHoraria('mañana')} style={getEstiloBoton('mañana', franjaHoraria, 'am')}>AM</button>
           <button onClick={() => setFranjaHoraria('tarde')} style={getEstiloBoton('tarde', franjaHoraria, 'pm')}>PM</button>
         </div>
-
-        {/* Fila 2: Selector de Etiquetas */}
         <div style={{ width: '100%', maxWidth: '320px' }}>
           <select 
             style={{...styles.selector, fontSize: '0.85rem', padding: '8px 12px'}} 
             value={etiquetaFiltro}
             onChange={(e) => setEtiquetaFiltro(e.target.value)}
           >
-            <option value="todas">Filtrar por contexto</option>
+            <option value="todas">Filtrar por contexto: Todos</option>
             <option value="reposo">En reposo</option>
             <option value="ejercicio">Post-ejercicio</option>
             <option value="ayunas">En ayunas</option>
             <option value="medicacion">Tras medicación</option>
             <option value="quimio">Post-quimioterapia</option>
             <option value="estres">Momento de estrés</option>
+            <option value="">Sin contexto específico</option>
           </select>
         </div>
       </div>
 
-      {/* --- ÁREA DE GRÁFICA --- */}
       {datosGrafica.length > 0 ? (
         <>
-          <div style={{ height: 260 }}>
+          <div style={{ height: 300 }}>
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={datosGrafica} margin={{ bottom: 20 }}>
+              <AreaChart data={datosGrafica} margin={{ top: 10, right: 70, left: 0, bottom: 20 }}>
                 <defs>
                   <linearGradient id="colorSis" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#004a99" stopOpacity={0.1}/><stop offset="95%" stopColor="#004a99" stopOpacity={0}/></linearGradient>
                   <linearGradient id="colorDia" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#10b981" stopOpacity={0.1}/><stop offset="95%" stopColor="#10b981" stopOpacity={0}/></linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                <XAxis 
-                  dataKey="tiempo" 
-                  axisLine={false} 
-                  tickLine={false} 
-                  interval={0} 
+                <XAxis dataKey="tiempo" axisLine={false} tickLine={false} interval={0} 
                   tick={({ x, y, payload }) => {
                     const [f, h] = payload.value.split(' ');
                     return (
@@ -136,7 +135,6 @@ const Grafica = ({ registros, metricaSeleccionada }) => {
                 />
                 <YAxis axisLine={false} tickLine={false} domain={['auto', 'auto']} tick={{fontSize: 10, fill: '#94a3b8'}} />
                 <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} />
-                
                 {esTension ? (
                   <>
                     <Area type="monotone" dataKey="sistolica" stroke="#004a99" fillOpacity={1} fill="url(#colorSis)" strokeWidth={3} name="Sistólica" dot={{r:3}} />
@@ -148,20 +146,19 @@ const Grafica = ({ registros, metricaSeleccionada }) => {
               </AreaChart>
             </ResponsiveContainer>
           </div>
-
-          {/* --- BLOQUE DE ESTADÍSTICAS --- */}
+          
           {stats && (
             <div style={{ marginTop: '20px' }}>
               {esTension ? (
                 <>
-                  <div style={{...styles.statSummaryLabel, color: '#004a99', textAlign: 'center', marginBottom: '8px'}}>SISTÓLICA</div>
+                  <div style={{...styles.statSummaryLabel, color: '#004a99', textAlign: 'center', marginBottom: '8px', fontSize: '0.7rem'}}>SISTÓLICA</div>
                   <div style={{...styles.statsSummaryGrid, marginTop: '0', paddingTop: '5px', borderTop: 'none'}}>
                     <div style={styles.statSummaryItem}><span style={styles.statSummaryLabel}>MÁX</span><strong style={styles.statSummaryValue}>{stats.sis.max}</strong></div>
                     <div style={styles.statSummaryItem}><span style={styles.statSummaryLabel}>PROM</span><strong style={{...styles.statSummaryValue, color: '#004a99'}}>{stats.sis.avg}</strong></div>
                     <div style={styles.statSummaryItem}><span style={styles.statSummaryLabel}>MÍN</span><strong style={styles.statSummaryValue}>{stats.sis.min}</strong></div>
                   </div>
-                  <div style={{ height: '1px', backgroundColor: '#f1f5f9', margin: '12px 0' }} />
-                  <div style={{...styles.statSummaryLabel, color: '#10b981', textAlign: 'center', marginBottom: '8px'}}>DIASTÓLICA</div>
+                  <div style={{ height: '1px', backgroundColor: '#f1f5f9', margin: '12px 0' }} className="no-print" />
+                  <div style={{...styles.statSummaryLabel, color: '#10b981', textAlign: 'center', marginBottom: '8px', fontSize: '0.7rem'}}>DIASTÓLICA</div>
                   <div style={{...styles.statsSummaryGrid, marginTop: '0', paddingTop: '5px', borderTop: 'none'}}>
                     <div style={styles.statSummaryItem}><span style={styles.statSummaryLabel}>MÁX</span><strong style={styles.statSummaryValue}>{stats.dia.max}</strong></div>
                     <div style={styles.statSummaryItem}><span style={styles.statSummaryLabel}>PROM</span><strong style={{...styles.statSummaryValue, color: '#10b981'}}>{stats.dia.avg}</strong></div>
@@ -183,6 +180,9 @@ const Grafica = ({ registros, metricaSeleccionada }) => {
           No hay mediciones registradas para los filtros seleccionados.
         </div>
       )}
+
+      {/* Menú exportar al final de la gráfica */}
+      <MenuExportar datosFiltrados={registrosFiltrados} />
     </div>
   );
 };

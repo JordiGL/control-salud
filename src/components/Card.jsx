@@ -31,13 +31,19 @@ const Card = ({ reg, esAdmin, deleteDoc, db, doc }) => {
   return (
     <div style={styles.historyCard}>
       <div style={styles.historyHeader}>
-        <span style={styles.dateBadge}>{reg.fecha} · {reg.hora}</span>
-        {esAdmin && (
-          <div style={{ display: 'flex', gap: '5px' }}>
-            <BotonEditar onClick={() => setShowEditModal(true)} />
-            <BotonEliminar onClick={() => setShowDeleteModal(true)} />
-          </div>
-        )}
+        {/* FECHA: Eliminamos el badge solo para impresión mediante clases CSS */}
+        <span className="fecha-badge-print" style={styles.dateBadge}>
+          {reg.fecha} · {reg.hora}
+        </span>
+        
+        <div className="no-print">
+          {esAdmin && (
+            <div style={{ display: 'flex', gap: '5px' }}>
+              <BotonEditar onClick={() => setShowEditModal(true)} />
+              <BotonEliminar onClick={() => setShowDeleteModal(true)} />
+            </div>
+          )}
+        </div>
       </div>
       
       <div style={styles.historyGrid}>
@@ -67,27 +73,30 @@ const Card = ({ reg, esAdmin, deleteDoc, db, doc }) => {
         )}
       </div>
 
-      {/* Etiqueta colocada encima de las notas */}
       {reg.etiqueta && coloresEtiquetas[reg.etiqueta] && (
         <div style={{ marginBottom: '8px', marginTop: '10px' }}>
           <span style={{
             padding: '3px 10px',
             borderRadius: '6px',
             fontSize: '0.65rem',
-            fontWeight: '600',
+            fontWeight: '700',
             backgroundColor: coloresEtiquetas[reg.etiqueta].bg,
             color: coloresEtiquetas[reg.etiqueta].text,
             textTransform: 'uppercase',
-            display: 'inline-block'
+            display: 'inline-block',
+            WebkitPrintColorAdjust: 'exact',
+            printColorAdjust: 'exact'
           }}>
             {coloresEtiquetas[reg.etiqueta].label}
           </span>
         </div>
       )}
       
-      {reg.notes || reg.notas ? (
-        <div style={styles.notaBox}>{reg.notas || reg.notes}</div>
-      ) : null}
+      {reg.notas && (
+        <div style={{...styles.notaBox, color: '#333', borderLeft: '3px solid #004a99'}}>
+          {reg.notas}
+        </div>
+      )}
 
       <ModalConfirmacion 
         isOpen={showDeleteModal} 

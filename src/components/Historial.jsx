@@ -1,11 +1,12 @@
 import { styles } from '../styles/styles';
 import Grafica from './Grafica';
-import Card from './Card'; // Importamos el nuevo componente
+import Card from './Card'; 
+import MenuExportar from './MenuExportar';
 
 const Historial = ({ registros, esAdmin, deleteDoc, db, doc, metricaSeleccionada, setMetricaSeleccionada }) => {
   return (
     <>
-      <div style={styles.statsNav}>
+      <div className="no-print" style={styles.statsNav}>
         <button 
           onClick={() => setMetricaSeleccionada(null)} 
           style={{...styles.statNavLink, color: !metricaSeleccionada ? '#004a99' : '#94a3b8', borderBottom: !metricaSeleccionada ? '2px solid #004a99' : 'none'}}
@@ -26,17 +27,25 @@ const Historial = ({ registros, esAdmin, deleteDoc, db, doc, metricaSeleccionada
       {metricaSeleccionada ? (
         <Grafica registros={registros} metricaSeleccionada={metricaSeleccionada} />
       ) : (
-        <div style={styles.historyList}>
-          {[...registros].reverse().map(reg => (
-            <Card 
-              key={reg.id} 
-              reg={reg} 
-              esAdmin={esAdmin} 
-              deleteDoc={deleteDoc} 
-              db={db} 
-              doc={doc} 
-            />
-          ))}
+        <div className="historial-container">
+          <div className="print-only historial-titulo-print">
+            HISTORIAL COMPLETO DE MEDICIONES
+          </div>
+
+          <div style={styles.historyList} className="cards-grid-print">
+            {[...registros].reverse().map(reg => (
+              <Card 
+                key={reg.id} 
+                reg={reg} 
+                esAdmin={esAdmin} 
+                deleteDoc={deleteDoc} 
+                db={db} 
+                doc={doc} 
+              />
+            ))}
+          </div>
+
+          <MenuExportar datosFiltrados={registros} />
         </div>
       )}
     </>

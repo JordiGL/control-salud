@@ -1,11 +1,11 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect } from 'react'
 import { auth, db, provider } from './firebaseConfig'
-import { collection, addDoc, onSnapshot, query, orderBy, deleteDoc, doc } from "firebase/firestore";
+import { collection, addDoc, onSnapshot, query, orderBy, deleteDoc, doc, updateDoc } from "firebase/firestore";
 import { signInWithPopup, signOut, onAuthStateChanged } from "firebase/auth";
 import Header from './components/Header';
 import Formulario from './components/Formulario';
 import Historial from './components/Historial';
-import Grafica from './components/Grafica';
+import Grafica from './components/Grafica'; // Asegúrate de tener este import
 import { styles } from './styles/styles';
 
 const EMAIL_ADMIN = "golojodev@gmail.com";
@@ -13,8 +13,16 @@ const EMAIL_ADMIN = "golojodev@gmail.com";
 function App() {
   const [registros, setRegistros] = useState([]);
   const [usuario, setUsuario] = useState(null);
-  const [metricaSeleccionada, setMetricaSeleccionada] = useState(null);
-  const [formData, setFormData] = useState({ tension: '', pulso: '', oxigeno: '', ca125: '', notas: '' });
+  // Por defecto seleccionamos 'tension' para que la gráfica no esté vacía al cargar
+  const [metricaSeleccionada, setMetricaSeleccionada] = useState('tension');
+  const [formData, setFormData] = useState({ 
+    tension: '', 
+    pulso: '', 
+    oxigeno: '', 
+    ca125: '', 
+    etiqueta: '', // Añadido para los contextos
+    notas: '' 
+  });
 
   useEffect(() => {
     onAuthStateChanged(auth, setUsuario);
@@ -35,7 +43,8 @@ function App() {
       fecha: new Date().toLocaleDateString(), 
       hora: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) 
     });
-    setFormData({ tension: '', pulso: '', oxigeno: '', ca125: '', notas: '' });
+    // Limpiamos el formulario incluyendo la etiqueta
+    setFormData({ tension: '', pulso: '', oxigeno: '', ca125: '', etiqueta: '', notas: '' });
   };
 
   return (
@@ -43,15 +52,26 @@ function App() {
       <Header usuario={usuario} login={() => signInWithPopup(auth, provider)} logout={() => signOut(auth)} />
 
       <main style={esAdmin ? styles.dashboardAdmin : styles.dashboardPublic}>
-        {esAdmin && <Formulario formData={formData} setFormData={setFormData} guardarRegistro={guardarRegistro} />}
+        {/* Envolvemos el formulario en un div con la clase no-print */}
+        {esAdmin && (
+          <div className="no-print">
+            <Formulario 
+              formData={formData} 
+              setFormData={setFormData} 
+              guardarRegistro={guardarRegistro} 
+            />
+          </div>
+        )}
         
         <section style={styles.columnaHistorial}>
+          {/* Navegación de métricas y Tabla de registros */}
           <Historial 
             registros={registros} 
             esAdmin={esAdmin} 
             deleteDoc={deleteDoc} 
             db={db} 
             doc={doc}
+            updateDoc={updateDoc} // Pasamos updateDoc para permitir la edición
             metricaSeleccionada={metricaSeleccionada}
             setMetricaSeleccionada={setMetricaSeleccionada}
           />

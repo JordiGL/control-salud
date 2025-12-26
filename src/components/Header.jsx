@@ -4,7 +4,7 @@ import { styles } from '../styles/styles';
 
 const Header = ({ usuario, login, logout }) => {
   return (
-    <header style={styles.header}>
+    <header className="no-print" style={styles.header}>
       <div /> 
       {usuario ? (
         /* Usamos el nuevo componente de menú */
