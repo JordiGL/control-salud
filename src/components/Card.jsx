@@ -16,7 +16,8 @@ const coloresEtiquetas = {
   ayunas: { bg: '#fef9c3', text: '#854d0e', label: 'En Ayunas' },
   medicacion: { bg: '#e0e7ff', text: '#3730a3', label: 'Tras Medicación' },
   estres: { bg: '#ffedd5', text: '#9a3412', label: 'Momento de Estrés' },
-  quimio: { bg: '#f3e8ff', text: '#6b21a8', label: 'Post-Quimioterapia' }
+  quimio: { bg: '#f3e8ff', text: '#6b21a8', label: 'Post-Quimioterapia' },
+  drenaje: { bg: '#e0f2fe', text: '#0369a1', label: 'Post-Drenaje' }
 };
 
 const Card = ({ reg, esAdmin, deleteDoc, db, doc }) => {
@@ -62,10 +63,11 @@ const Card = ({ reg, esAdmin, deleteDoc, db, doc }) => {
     colorBordeSide = '#f59e0b';
   }
 
-  const handleEditar = async (nuevosDatos) => {
+  // --- MODIFICACIÓN AQUÍ: Recibe el objeto completo (incluyendo el nuevo timestamp) ---
+  const handleEditar = async (datosActualizados) => {
     try {
       const docRef = doc(db, "mediciones", reg.id);
-      await updateDoc(docRef, nuevosDatos);
+      await updateDoc(docRef, datosActualizados);
       setShowEditModal(false);
     } catch (error) {
       console.error("Error al actualizar:", error);
@@ -79,7 +81,7 @@ const Card = ({ reg, esAdmin, deleteDoc, db, doc }) => {
         borderLeft: `6px solid ${colorBordeSide}`,
         backgroundColor: '#ffffff',
         cursor: 'default',
-        position: 'relative' // Asegura que los modales se posicionen correctamente si son relativos
+        position: 'relative'
       }}
     >
       {/* CABECERA: Fecha y Acciones */}
@@ -153,7 +155,6 @@ const Card = ({ reg, esAdmin, deleteDoc, db, doc }) => {
         )}
       </div>
 
-      {/* SECCIÓN CA-125 */}
       {reg.ca125 && (
         <div style={{
           marginTop: '15px',
@@ -172,7 +173,6 @@ const Card = ({ reg, esAdmin, deleteDoc, db, doc }) => {
         </div>
       )}
 
-      {/* ETIQUETA Y NOTAS */}
       <div style={{ marginTop: '15px' }}>
         {reg.etiqueta && coloresEtiquetas[reg.etiqueta] && (
           <span style={{
@@ -207,7 +207,6 @@ const Card = ({ reg, esAdmin, deleteDoc, db, doc }) => {
         )}
       </div>
 
-      {/* MODALES: Ahora se renderizarán por encima sin conflictos */}
       <ModalConfirmacion 
         isOpen={showDeleteModal} 
         onConfirm={() => deleteDoc(doc(db, "mediciones", reg.id))} 

@@ -39,7 +39,7 @@ const MenuExportar = ({ datosFiltrados }) => {
         
         <button 
           onClick={() => exportToCSV(datosFiltrados)} 
-          style={{...styles.btnFiltro, backgroundColor: '#fff', borderColor: '#10b981', color: '#10b981'}}
+          style={{...styles.btnFiltro, backgroundColor: '#fff', borderColor: '#64748b', color: '#64748b'}}
         >
           📊 CSV
         </button>

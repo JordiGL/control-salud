@@ -59,13 +59,11 @@ const FormularioBase = ({ datos, onChange }) => {
             value={datos.etiqueta || ''} 
             onChange={onChange}
             >
-            <option value="">Sin contexto definido</option>
-            <option value="reposo">En reposo</option>
-            <option value="ejercicio">Post-ejercicio</option>
-            <option value="ayunas">En ayunas</option>
-            <option value="medicacion">Tras medicación</option>
-            <option value="quimio">Post-quimioterapia</option>
-            <option value="estres">Momento de estrés</option>
+              <option value="">Sin contexto definido</option>
+              <option value="ejercicio">Post-ejercicio</option>
+              <option value="quimio">Post-quimioterapia</option>
+              <option value="estres">Momento de estrés</option>
+              <option value="drenaje">Post-drenaje</option>
         </select>
       </div>
 

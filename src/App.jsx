@@ -5,7 +5,7 @@ import { signInWithPopup, signOut, onAuthStateChanged } from "firebase/auth";
 import Header from './components/Header';
 import Formulario from './components/Formulario';
 import Historial from './components/Historial';
-import Grafica from './components/Grafica'; // Asegúrate de tener este import
+import Grafica from './components/Grafica';
 import { styles } from './styles/styles';
 
 const EMAIL_ADMIN = "golojodev@gmail.com";
@@ -13,14 +13,13 @@ const EMAIL_ADMIN = "golojodev@gmail.com";
 function App() {
   const [registros, setRegistros] = useState([]);
   const [usuario, setUsuario] = useState(null);
-  // Por defecto seleccionamos 'tension' para que la gráfica no esté vacía al cargar
-  const [metricaSeleccionada, setMetricaSeleccionada] = useState('tension');
+  const [metricaSeleccionada, setMetricaSeleccionada] = useState(null);
   const [formData, setFormData] = useState({ 
     tension: '', 
     pulso: '', 
     oxigeno: '', 
     ca125: '', 
-    etiqueta: '', // Añadido para los contextos
+    etiqueta: '',
     notas: '' 
   });
 
