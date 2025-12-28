@@ -1,4 +1,5 @@
 import { styles } from '../styles/styles';
+import { ETIQUETAS_CONFIG } from '../constants/metricas';
 
 const FormularioBase = ({ datos, onChange, sinContenedor = false }) => {
   const contenido = (
@@ -27,10 +28,9 @@ const FormularioBase = ({ datos, onChange, sinContenedor = false }) => {
         <label style={styles.label}>Contexto</label>
         <select name="etiqueta" style={styles.selector} value={datos.etiqueta || ''} onChange={onChange}>
           <option value="">Sin contexto definido</option>
-          <option value="ejercicio">Post-ejercicio</option>
-          <option value="quimio">Post-quimioterapia</option>
-          <option value="estres">Momento de estrés</option>
-          <option value="drenaje">Post-drenaje</option>
+          {Object.keys(ETIQUETAS_CONFIG).map(key => (
+            <option key={key} value={key}>{ETIQUETAS_CONFIG[key].label}</option>
+          ))}
         </select>
       </div>
 

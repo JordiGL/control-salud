@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
 import { styles } from '../styles/styles';
 import MenuExportar from './MenuExportar';
+import { ETIQUETAS_CONFIG, capitalizar } from '../constants/metricas';
 
 const COLORES_GRAFICA = {
   sistolica: '#1e40af', 
@@ -11,22 +12,14 @@ const COLORES_GRAFICA = {
   texto: '#64748b' 
 };
 
-const ETIQUETAS_NOMBRES = {
-  ejercicio: 'Post-Ejercicio',
-  estres: 'Momento de Estrés',
-  quimio: 'Post-Quimioterapia',
-  drenaje: 'Post-Drenaje'
-};
-
-const formatearTexto = (str) => {
-  if (!str) return "";
-  return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
-};
-
-// Tooltip Personalizado que incluye Contexto y Notas
+// Tooltip Personalizado Corregido
 const CustomTooltip = ({ active, payload, label }) => {
   if (active && payload && payload.length) {
     const data = payload[0].payload; 
+    
+    // Buscamos el nombre amigable en la configuración centralizada
+    const textoEtiqueta = ETIQUETAS_CONFIG[data.etiquetaOriginal]?.label || capitalizar(data.etiquetaOriginal);
+
     return (
       <div style={{
         backgroundColor: '#fff',
@@ -34,27 +27,31 @@ const CustomTooltip = ({ active, payload, label }) => {
         borderRadius: '12px',
         boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
         border: 'none',
-        fontSize: '0.8rem'
+        fontSize: '0.8rem',
+        pointerEvents: 'none' // Evita interferencias con el mouse
       }}>
         <p style={{ margin: '0 0 8px', fontWeight: 'bold', color: '#1e293b', borderBottom: '1px solid #f1f5f9', paddingBottom: '4px' }}>
           {data.tiempoCompleto || label}
         </p>
+        
         {payload.map((entry, index) => (
           <p key={index} style={{ margin: '4px 0', color: entry.color, fontWeight: '600' }}>
-            {entry.name}: {entry.value}
+            {capitalizar(entry.name)}: {entry.value}
           </p>
         ))}
+
         {data.etiquetaOriginal && (
           <div style={{ marginTop: '8px', paddingTop: '8px', borderTop: '1px dashed #e2e8f0' }}>
             <p style={{ margin: 0, color: '#0369a1', fontWeight: '500' }}>
-              📍 {ETIQUETAS_NOMBRES[data.etiquetaOriginal] || data.etiquetaOriginal}
+              📍 {textoEtiqueta}
             </p>
           </div>
         )}
+        
         {data.notasOriginales && (
           <div style={{ marginTop: '6px' }}>
             <p style={{ margin: 0, color: '#475569', fontStyle: 'italic', maxWidth: '150px', lineHeight: '1.2' }}>
-              📝 {data.notasOriginales}
+              📝 {capitalizar(data.notasOriginales)}
             </p>
           </div>
         )}
@@ -160,13 +157,9 @@ const Grafica = ({ registros, metricaSeleccionada }) => {
             onChange={(e) => setEtiquetaFiltro(e.target.value)}
           >
             <option value="todas">Filtrar por contexto</option>
-            <option value="reposo">En reposo</option>
-            <option value="ejercicio">Post-ejercicio</option>
-            <option value="ayunas">En ayunas</option>
-            <option value="medicacion">Tras medicación</option>
-            <option value="quimio">Post-quimioterapia</option>
-            <option value="estres">Momento de estrés</option>
-            <option value="drenaje">Post-drenaje</option>
+              {Object.keys(ETIQUETAS_CONFIG).map(key => (
+                <option key={key} value={key}>{ETIQUETAS_CONFIG[key].label}</option>
+              ))}
           </select>
         </div>
       </div>
@@ -201,7 +194,6 @@ const Grafica = ({ registros, metricaSeleccionada }) => {
                 />
                 <YAxis axisLine={false} tickLine={false} domain={['auto', 'auto']} tick={{fontSize: 10, fill: COLORES_GRAFICA.texto}} />
                 
-                {/* TOOLTIP CON CONTEXTO Y NOTAS */}
                 <Tooltip content={<CustomTooltip />} />
                 
                 {esTension ? (
@@ -210,7 +202,7 @@ const Grafica = ({ registros, metricaSeleccionada }) => {
                     <Area type="monotone" dataKey="diastolica" stroke={COLORES_GRAFICA.diastolica} fillOpacity={0} fill="transparent" strokeWidth={3} name="Diastólica" dot={{r:3}} />
                   </>
                 ) : (
-                  <Area type="monotone" dataKey="valor" stroke={COLORES_GRAFICA.general} fillOpacity={0.1} fill={COLORES_GRAFICA.general} strokeWidth={3} dot={{r:4}} name={formatearTexto(metricaSeleccionada)} />
+                  <Area type="monotone" dataKey="valor" stroke={COLORES_GRAFICA.general} fillOpacity={0.1} fill={COLORES_GRAFICA.general} strokeWidth={3} dot={{r:4}} name={capitalizar(metricaSeleccionada)} />
                 )}
               </AreaChart>
             </ResponsiveContainer>

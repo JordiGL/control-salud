@@ -4,18 +4,12 @@ import { BotonEliminar, BotonEditar } from './Botones';
 import ModalConfirmacion from './ModalConfirmacion';
 import ModalEditar from './ModalEditar';
 import { updateDoc } from 'firebase/firestore';
+import { ETIQUETAS_CONFIG } from '../constants/metricas';
 
 // Iconos para mayor claridad visual
 const IconoTension = () => <span style={{ marginRight: '8px' }}>📈</span>;
 const IconoPulso = () => <span style={{ marginRight: '8px' }}>❤️</span>;
 const IconoOxigeno = () => <span style={{ marginRight: '8px' }}>🌬️</span>;
-
-const coloresEtiquetas = {
-  ejercicio: { bg: '#fee2e2', text: '#991b1b', label: 'Post-Ejercicio' },
-  estres: { bg: '#ffedd5', text: '#9a3412', label: 'Momento de Estrés' },
-  quimio: { bg: '#f3e8ff', text: '#6b21a8', label: 'Post-Quimioterapia' },
-  drenaje: { bg: '#e0f2fe', text: '#0369a1', label: 'Post-Drenaje' }
-};
 
 const Card = ({ reg, esAdmin, deleteDoc, db, doc }) => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -171,19 +165,19 @@ const Card = ({ reg, esAdmin, deleteDoc, db, doc }) => {
       )}
 
       <div style={{ marginTop: '15px' }}>
-        {reg.etiqueta && coloresEtiquetas[reg.etiqueta] && (
+        {reg.etiqueta && ETIQUETAS_CONFIG[reg.etiqueta] && (
           <span style={{
             padding: '4px 12px',
             borderRadius: '20px',
             fontSize: '0.65rem',
             fontWeight: '700',
-            backgroundColor: coloresEtiquetas[reg.etiqueta].bg,
-            color: coloresEtiquetas[reg.etiqueta].text,
+            backgroundColor: ETIQUETAS_CONFIG[reg.etiqueta].bg,
+            color: ETIQUETAS_CONFIG[reg.etiqueta].text,
             textTransform: 'uppercase',
             display: 'inline-block',
             marginBottom: '10px'
           }}>
-            {coloresEtiquetas[reg.etiqueta].label}
+            {ETIQUETAS_CONFIG[reg.etiqueta].label}
           </span>
         )}
         
