@@ -83,7 +83,6 @@ export const styles = {
   detailsSummary: {
     fontSize: "1.2rem",
     fontWeight: "bold",
-    borderBottom: "2px solid #f3f4f6",
     paddingBottom: "10px",
     cursor: "pointer",
   },
@@ -263,13 +262,19 @@ export const styles = {
     padding: "20px",
   },
   modalContent: {
-    background: "#fff",
-    padding: "25px",
+    backgroundColor: "#ffffff",
     borderRadius: "16px",
-    maxWidth: "400px",
-    width: "100%",
-    boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1)",
-    textAlign: "center",
+    padding: "24px",
+    width: "90%",
+    maxWidth: "500px",
+    position: "relative",
+    zIndex: 1000,
+
+    // --- AÑADE ESTAS LÍNEAS ---
+    maxHeight: "90vh", // No permite que el modal ocupe más del 90% de la altura de la pantalla
+    overflowY: "auto", // Habilita el scroll interno si el contenido es muy largo
+    display: "flex",
+    flexDirection: "column",
   },
   modalTitle: {
     fontSize: "1.2rem",

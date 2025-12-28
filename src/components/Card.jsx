@@ -11,10 +11,7 @@ const IconoPulso = () => <span style={{ marginRight: '8px' }}>❤️</span>;
 const IconoOxigeno = () => <span style={{ marginRight: '8px' }}>🌬️</span>;
 
 const coloresEtiquetas = {
-  reposo: { bg: '#dcfce7', text: '#166534', label: 'En Reposo' },
   ejercicio: { bg: '#fee2e2', text: '#991b1b', label: 'Post-Ejercicio' },
-  ayunas: { bg: '#fef9c3', text: '#854d0e', label: 'En Ayunas' },
-  medicacion: { bg: '#e0e7ff', text: '#3730a3', label: 'Tras Medicación' },
   estres: { bg: '#ffedd5', text: '#9a3412', label: 'Momento de Estrés' },
   quimio: { bg: '#f3e8ff', text: '#6b21a8', label: 'Post-Quimioterapia' },
   drenaje: { bg: '#e0f2fe', text: '#0369a1', label: 'Post-Drenaje' }

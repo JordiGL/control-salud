@@ -11,6 +11,59 @@ const COLORES_GRAFICA = {
   texto: '#64748b' 
 };
 
+const ETIQUETAS_NOMBRES = {
+  ejercicio: 'Post-Ejercicio',
+  estres: 'Momento de Estrés',
+  quimio: 'Post-Quimioterapia',
+  drenaje: 'Post-Drenaje'
+};
+
+const formatearTexto = (str) => {
+  if (!str) return "";
+  return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+};
+
+// Tooltip Personalizado que incluye Contexto y Notas
+const CustomTooltip = ({ active, payload, label }) => {
+  if (active && payload && payload.length) {
+    const data = payload[0].payload; 
+    return (
+      <div style={{
+        backgroundColor: '#fff',
+        padding: '12px',
+        borderRadius: '12px',
+        boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+        border: 'none',
+        fontSize: '0.8rem'
+      }}>
+        <p style={{ margin: '0 0 8px', fontWeight: 'bold', color: '#1e293b', borderBottom: '1px solid #f1f5f9', paddingBottom: '4px' }}>
+          {data.tiempoCompleto || label}
+        </p>
+        {payload.map((entry, index) => (
+          <p key={index} style={{ margin: '4px 0', color: entry.color, fontWeight: '600' }}>
+            {entry.name}: {entry.value}
+          </p>
+        ))}
+        {data.etiquetaOriginal && (
+          <div style={{ marginTop: '8px', paddingTop: '8px', borderTop: '1px dashed #e2e8f0' }}>
+            <p style={{ margin: 0, color: '#0369a1', fontWeight: '500' }}>
+              📍 {ETIQUETAS_NOMBRES[data.etiquetaOriginal] || data.etiquetaOriginal}
+            </p>
+          </div>
+        )}
+        {data.notasOriginales && (
+          <div style={{ marginTop: '6px' }}>
+            <p style={{ margin: 0, color: '#475569', fontStyle: 'italic', maxWidth: '150px', lineHeight: '1.2' }}>
+              📝 {data.notasOriginales}
+            </p>
+          </div>
+        )}
+      </div>
+    );
+  }
+  return null;
+};
+
 const Grafica = ({ registros, metricaSeleccionada }) => {
   const [rangoTiempo, setRangoTiempo] = useState('todo'); 
   const [franjaHoraria, setFranjaHoraria] = useState('todo'); 
@@ -40,6 +93,9 @@ const Grafica = ({ registros, metricaSeleccionada }) => {
   const datosGrafica = useMemo(() => {
     return registrosFiltrados.map(r => ({
       tiempo: `${r.fecha.substring(0, 5)} ${r.hora}`,
+      tiempoCompleto: `${r.fecha} | ${r.hora}`,
+      etiquetaOriginal: r.etiqueta,
+      notasOriginales: r.notas,
       sistolica: esTension ? parseFloat((r.tension || "").split('/')[0]) : null,
       diastolica: esTension ? parseFloat((r.tension || "").split('/')[1]) : null,
       valor: !esTension ? parseFloat(r[metricaSeleccionada]) : null
@@ -85,7 +141,6 @@ const Grafica = ({ registros, metricaSeleccionada }) => {
       </div>
 
       <div className="no-print" style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '25px', alignItems: 'center' }}>
-        {/* Filtros de tiempo y franja */}
         <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', justifyContent: 'center' }}>
           {['semana', 'mes', 'todo'].map(r => (
             <button key={r} onClick={() => setRangoTiempo(r)} style={getEstiloBoton(r, rangoTiempo)}>
@@ -98,7 +153,6 @@ const Grafica = ({ registros, metricaSeleccionada }) => {
           <button onClick={() => setFranjaHoraria('tarde')} style={getEstiloBoton('tarde', franjaHoraria, 'pm')}>PM</button>
         </div>
 
-        {/* SELECT DE CONTEXTO RESTAURADO */}
         <div style={{ width: '100%', maxWidth: '320px' }}>
           <select 
             style={{...styles.selector, fontSize: '0.85rem', padding: '8px 12px'}} 
@@ -112,6 +166,7 @@ const Grafica = ({ registros, metricaSeleccionada }) => {
             <option value="medicacion">Tras medicación</option>
             <option value="quimio">Post-quimioterapia</option>
             <option value="estres">Momento de estrés</option>
+            <option value="drenaje">Post-drenaje</option>
           </select>
         </div>
       </div>
@@ -145,7 +200,9 @@ const Grafica = ({ registros, metricaSeleccionada }) => {
                     }}
                 />
                 <YAxis axisLine={false} tickLine={false} domain={['auto', 'auto']} tick={{fontSize: 10, fill: COLORES_GRAFICA.texto}} />
-                <Tooltip itemSorter={(item) => (item.dataKey === 'sistolica' ? -1 : 1)} contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} />
+                
+                {/* TOOLTIP CON CONTEXTO Y NOTAS */}
+                <Tooltip content={<CustomTooltip />} />
                 
                 {esTension ? (
                   <>
@@ -153,7 +210,7 @@ const Grafica = ({ registros, metricaSeleccionada }) => {
                     <Area type="monotone" dataKey="diastolica" stroke={COLORES_GRAFICA.diastolica} fillOpacity={0} fill="transparent" strokeWidth={3} name="Diastólica" dot={{r:3}} />
                   </>
                 ) : (
-                  <Area type="monotone" dataKey="valor" stroke={COLORES_GRAFICA.general} fillOpacity={0.1} fill={COLORES_GRAFICA.general} strokeWidth={3} dot={{r:4}} />
+                  <Area type="monotone" dataKey="valor" stroke={COLORES_GRAFICA.general} fillOpacity={0.1} fill={COLORES_GRAFICA.general} strokeWidth={3} dot={{r:4}} name={formatearTexto(metricaSeleccionada)} />
                 )}
               </AreaChart>
             </ResponsiveContainer>
