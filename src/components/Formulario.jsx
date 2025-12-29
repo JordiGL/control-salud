@@ -2,21 +2,21 @@ import { useEffect, useState } from 'react';
 import { styles } from '../styles/styles';
 import { BotonAccion } from './Botones';
 import FormularioBase from './FormularioBase';
-import ScannerIA from './ScannerIA'; // Importamos el controlador de la IA
+import ScannerIA from './ScannerIA';
+import ModalConfirmacionIA from './ModalConfirmacionIA'; // Importamos el nuevo componente
 
 const Formulario = ({ formData, setFormData, guardarRegistro }) => {
   const [isWide, setIsWide] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
+  // Estado para controlar los datos temporales de la IA
+  const [datosTemporalesIA, setDatosTemporalesIA] = useState(null);
 
   useEffect(() => {
     const mediaQuery = window.matchMedia('(min-width: 901px)');
     const handleChange = (event) => {
       setIsWide(event.matches);
-      if (event.matches) {
-        setIsOpen(true);
-      }
+      if (event.matches) setIsOpen(true);
     };
-
     handleChange(mediaQuery);
     const listener = (event) => handleChange(event);
     mediaQuery.addEventListener('change', listener);
@@ -25,62 +25,75 @@ const Formulario = ({ formData, setFormData, guardarRegistro }) => {
 
   const manejarCambio = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value
-    }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  // 1. Recibe datos de ScannerIA pero NO los guarda todavía en formData
   const recibirDatosIA = (datos) => {
+    setDatosTemporalesIA(datos); // Abrirá el modal de confirmación
+  };
+
+  // 2. Acción: Sí, guardar ahora (Guardado Directo)
+  const confirmarYGuardarIA = () => {
+    const datosFinales = {
+      ...formData,
+      tension: datosTemporalesIA.tension || formData.tension,
+      pulso: datosTemporalesIA.pulso || formData.pulso,
+      oxigeno: datosTemporalesIA.oxigeno || formData.oxigeno,
+    };
+    
+    // Llamamos a guardar con el segundo argumento de datosDirectos
+    guardarRegistro(null, datosFinales);
+    setDatosTemporalesIA(null);
+  };
+
+  // 3. Acción: Corregir manualmente
+  const corregirManualmente = () => {
     setFormData(prev => ({
       ...prev,
-      tension: datos.tension || prev.tension,
-      pulso: datos.pulso || "", // Cambiado null por cadena vacía para el input
-      fecha: prev.fecha || new Date().toISOString().split('T')[0]
+      tension: datosTemporalesIA.tension || prev.tension,
+      pulso: datosTemporalesIA.pulso || prev.pulso,
+      oxigeno: datosTemporalesIA.oxigeno || prev.oxigeno
     }));
+    setDatosTemporalesIA(null); // Cierra el modal y deja los datos en los inputs
   };
 
   const validarYGuardar = (e) => {
     e.preventDefault();
-    
     const tieneValores = Object.values(formData).some(
       valor => valor !== undefined && valor !== null && valor.toString().trim() !== ""
     );
-    
-    if (tieneValores) {
-      guardarRegistro(e);
-    } else {
-      alert("Por favor, introduce al menos una medición para guardar el registro.");
-    }
+    if (tieneValores) guardarRegistro(e);
+    else alert("Por favor, introduce al menos una medición.");
   };
 
   return (
     <section style={styles.columnaForm}>
+      {/* --- MODAL DE CONFIRMACIÓN IA --- */}
+      {datosTemporalesIA && (
+        <ModalConfirmacionIA 
+          datos={datosTemporalesIA} 
+          onConfirm={confirmarYGuardarIA} 
+          onEdit={corregirManualmente}
+          onCancel={() => setDatosTemporalesIA(null)}
+        />
+      )}
+
       <div style={styles.card}>
         <details
           open={isWide || isOpen}
           onToggle={(e) => {
-            if (isWide) {
-              e.currentTarget.open = true;
-              return;
-            }
+            if (isWide) { e.currentTarget.open = true; return; }
             setIsOpen(e.currentTarget.open);
           }}
         >
           <summary style={styles.detailsSummary}>Nuevo Registro</summary>
           <div style={styles.detailsContent}>
             <form onSubmit={validarYGuardar}>
-              
-              {/* --- BOTÓN DE IA INTEGRADO --- */}
               <ScannerIA onDatosExtraidos={recibirDatosIA} />
-
-              {/* Formulario con los campos de texto normales */}
               <FormularioBase datos={formData} onChange={manejarCambio} />
-
               <div style={{ marginTop: '20px' }}>
-                <BotonAccion tipo="submit">
-                  Guardar Registro
-                </BotonAccion>
+                <BotonAccion tipo="submit">Guardar Registro</BotonAccion>
               </div>
             </form>
           </div>

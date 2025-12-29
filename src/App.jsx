@@ -33,16 +33,21 @@ function App() {
 
   const esAdmin = usuario && usuario.email === EMAIL_ADMIN;
 
-  const guardarRegistro = async (e) => {
-    e.preventDefault();
+  const guardarRegistro = async (e, datosDirectos = null) => {
+    if (e) e.preventDefault();
     if (!esAdmin) return;
+  
+    // Si vienen datosDirectos (desde el Modal de IA), los usamos. Si no, usamos formData.
+    const datosAGuardar = datosDirectos || formData;
+  
     await addDoc(collection(db, "mediciones"), { 
-      ...formData, 
+      ...datosAGuardar, 
       timestamp: Date.now(), 
       fecha: new Date().toLocaleDateString(), 
       hora: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) 
     });
-    // Limpiamos el formulario incluyendo la etiqueta
+  
+    // Limpiamos el formulario
     setFormData({ tension: '', pulso: '', oxigeno: '', ca125: '', etiqueta: '', notas: '' });
   };
 
