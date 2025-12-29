@@ -1,7 +1,7 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
-// Asegúrate de usar tu clave de API "...65UM" que creaste hoy
-const genAI = new GoogleGenerativeAI("AIzaSyDxFxL3mRijlXTAVDFL0X7JR3Zrg5265UM");
+const API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
+const genAI = new GoogleGenerativeAI(API_KEY);
 
 export const escanearMedicionConIA = async (archivo) => {
   // Ahora que tienes facturación, gemini-2.0-flash ya no tendrá límite 0
