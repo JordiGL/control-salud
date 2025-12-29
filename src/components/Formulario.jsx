@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { styles } from '../styles/styles';
 import { BotonAccion } from './Botones';
 import FormularioBase from './FormularioBase';
+import ScannerIA from './ScannerIA'; // Importamos el controlador de la IA
 
 const Formulario = ({ formData, setFormData, guardarRegistro }) => {
   const [isWide, setIsWide] = useState(false);
@@ -30,7 +31,15 @@ const Formulario = ({ formData, setFormData, guardarRegistro }) => {
     }));
   };
 
-  // Validación: comprueba que al menos un campo tenga texto
+  const recibirDatosIA = (datos) => {
+    setFormData(prev => ({
+      ...prev,
+      tension: datos.tension || prev.tension,
+      pulso: datos.pulso || "", // Cambiado null por cadena vacía para el input
+      fecha: prev.fecha || new Date().toISOString().split('T')[0]
+    }));
+  };
+
   const validarYGuardar = (e) => {
     e.preventDefault();
     
@@ -62,12 +71,15 @@ const Formulario = ({ formData, setFormData, guardarRegistro }) => {
           <div style={styles.detailsContent}>
             <form onSubmit={validarYGuardar}>
               
-              {/* Usamos el componente base que contiene todos los inputs y placeholders */}
+              {/* --- BOTÓN DE IA INTEGRADO --- */}
+              <ScannerIA onDatosExtraidos={recibirDatosIA} />
+
+              {/* Formulario con los campos de texto normales */}
               <FormularioBase datos={formData} onChange={manejarCambio} />
 
               <div style={{ marginTop: '20px' }}>
                 <BotonAccion tipo="submit">
-                  Guardar
+                  Guardar Registro
                 </BotonAccion>
               </div>
             </form>
