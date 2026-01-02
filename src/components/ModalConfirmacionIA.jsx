@@ -6,6 +6,7 @@ const ModalConfirmacionIA = ({ datos, onConfirm, onEdit }) => {
 
   // Lógica de colores coherente con Card.jsx
   const getSisColor = (sis) => (Number(sis) >= 140 ? '#ef4444' : Number(sis) >= 130 ? '#f59e0b' : '#1e293b');
+  const getPesoColor = () => '#475569';
   const getOxigenoColor = (val) => (Number(val) < 95 ? '#ef4444' : '#1e293b');
 
   const [sis, dia] = datos.tension ? datos.tension.split('/') : [null, null];
@@ -46,6 +47,12 @@ const ModalConfirmacionIA = ({ datos, onConfirm, onEdit }) => {
             <div style={{ textAlign: 'center' }}>
               <span style={{ fontSize: '0.65rem', color: '#94a3b8', fontWeight: 'bold', display: 'block', marginBottom: '4px' }}>SpO2</span>
               <strong style={{ fontSize: '1.3rem', color: getOxigenoColor(datos.oxigeno) }}>{datos.oxigeno}%</strong>
+            </div>
+          )}
+          {datos.peso && (
+            <div style={{ textAlign: 'center', marginTop: '8px', borderTop: '1px solid #edf2f7', paddingTop: '8px' }}>
+              <span style={{ fontSize: '0.65rem', color: '#94a3b8', fontWeight: 'bold', display: 'block', marginBottom: '2px' }}>PESO</span>
+              <strong style={{ fontSize: '1.1rem', color: getPesoColor() }}>{datos.peso} <small style={{fontSize: '0.7rem', fontWeight: 'normal'}}>kg</small></strong>
             </div>
           )}
           {datos.pulso && (

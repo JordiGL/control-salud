@@ -10,6 +10,7 @@ import { ETIQUETAS_CONFIG } from '../constants/metricas';
 const IconoTension = () => <span style={{ marginRight: '8px' }}>📈</span>;
 const IconoPulso = () => <span style={{ marginRight: '8px' }}>❤️</span>;
 const IconoOxigeno = () => <span style={{ marginRight: '8px' }}>🌬️</span>;
+const IconoPeso = () => <span style={{ marginRight: '8px' }}>⚖️</span>;
 
 const Card = ({ reg, esAdmin, deleteDoc, db, doc }) => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -42,6 +43,9 @@ const Card = ({ reg, esAdmin, deleteDoc, db, doc }) => {
     return o < 95 ? '#ef4444' : '#1e293b';
   };
 
+  // Color neutro para el peso (puedes cambiarlo si quieres lógica de sobrepeso)
+  const getPesoColor = () => '#475569';
+
   // --- LÓGICA DE BORDE LATERAL ---
   const [sisVal, diaVal] = reg.tension ? reg.tension.split('/').map(Number) : [0, 0];
   const pulsVal = Number(reg.pulso);
@@ -54,7 +58,6 @@ const Card = ({ reg, esAdmin, deleteDoc, db, doc }) => {
     colorBordeSide = '#f59e0b';
   }
 
-  // --- MODIFICACIÓN AQUÍ: Recibe el objeto completo (incluyendo el nuevo timestamp) ---
   const handleEditar = async (datosActualizados) => {
     try {
       const docRef = doc(db, "mediciones", reg.id);
@@ -142,6 +145,31 @@ const Card = ({ reg, esAdmin, deleteDoc, db, doc }) => {
             <strong style={{...styles.dataValue, color: getOxigenoColor(reg.oxigeno), fontSize: '1.25rem'}}>
               {reg.oxigeno}<small style={{fontSize: '0.7rem', fontWeight: 'normal', color: '#94a3b8'}}>%</small>
             </strong>
+          </div>
+        )}
+
+        {/* --- NUEVO BLOQUE DE PESO --- */}
+        {reg.peso && (
+          <div style={{...styles.dataBlock, textAlign: 'left'}}>
+            <span style={{...styles.dataLabel, display: 'flex', alignItems: 'center'}}>
+              <IconoPeso /> Peso
+            </span>
+            <strong style={{...styles.dataValue, color: getPesoColor(), fontSize: '1.25rem'}}>
+              {reg.peso} <small style={{fontSize: '0.7rem', fontWeight: 'normal', color: '#94a3b8'}}>kg</small>
+            </strong>
+            {/* Mostramos el lugar si existe */}
+            {reg.lugarPeso && (
+              <div style={{ 
+                fontSize: '0.75rem', 
+                color: '#64748b', 
+                marginTop: '4px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px' 
+              }}>
+                📍 {reg.lugarPeso}
+              </div>
+            )}
           </div>
         )}
       </div>

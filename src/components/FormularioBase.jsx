@@ -1,50 +1,73 @@
+import { CONFIG_CAMPOS } from '../constants/campos';
 import { styles } from '../styles/styles';
-import { ETIQUETAS_CONFIG } from '../constants/metricas';
 
 const FormularioBase = ({ datos, onChange, sinContenedor = false }) => {
-  const contenido = (
-    <>
-      <div style={styles.inputGroup}>
-        <label style={styles.label}>Tensión</label>
-        <input name="tension" type="text" style={styles.input} value={datos.tension || ''} onChange={onChange} placeholder="120/80" />
+  
+  // Generamos el HTML recorriendo la configuración
+  const contenido = CONFIG_CAMPOS.map((campo) => {
+    
+    // 1. Estilos dinámicos: Si es 'fullWidth', ocupa toda la fila
+    const estiloGrupo = campo.fullWidth 
+      ? { ...styles.inputGroup, gridColumn: '1/-1' } 
+      : styles.inputGroup;
+
+    // 2. Renderizado de SELECT (Para Contexto y Lugar)
+    if (campo.type === 'select') {
+      return (
+        <div key={campo.id} style={estiloGrupo}>
+          <label style={styles.label}>{campo.label}</label>
+          <select 
+            name={campo.id} 
+            value={datos[campo.id] || campo.defaultValue} 
+            onChange={onChange} 
+            style={styles.selector}
+          >
+            {campo.options.map((opt) => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
+              </option>
+            ))}
+          </select>
+        </div>
+      );
+    }
+
+    // 3. Renderizado de TEXTAREA (Notas)
+    if (campo.type === 'textarea') {
+      return (
+        <div key={campo.id} style={estiloGrupo}>
+          <label style={styles.label}>{campo.label}</label>
+          <textarea 
+            name={campo.id} 
+            value={datos[campo.id] || ''} 
+            onChange={onChange} 
+            placeholder={campo.placeholder}
+            style={{ ...styles.input, minHeight: '80px' }} 
+          />
+        </div>
+      );
+    }
+
+    // 4. Renderizado de INPUT NORMAL (Texto/Número)
+    return (
+      <div key={campo.id} style={estiloGrupo}>
+        <label style={styles.label}>{campo.label}</label>
+        <input 
+          name={campo.id} 
+          type={campo.type} 
+          step={campo.step || null} // Solo aplica si existe en config (ej: peso)
+          value={datos[campo.id] || ''} 
+          onChange={onChange} 
+          placeholder={campo.placeholder}
+          style={styles.input} 
+        />
       </div>
+    );
+  });
 
-      <div style={styles.inputGroup}>
-        <label style={styles.label}>Pulso</label>
-        <input name="pulso" type="number" style={styles.input} value={datos.pulso || ''} onChange={onChange} placeholder="BPM" />
-      </div>
+  // Renderizado final
+  if (sinContenedor) return <>{contenido}</>;
 
-      <div style={styles.inputGroup}>
-        <label style={styles.label}>SpO2</label>
-        <input name="oxigeno" type="number" style={styles.input} value={datos.oxigeno || ''} onChange={onChange} placeholder="%" />
-      </div>
-
-      <div style={styles.inputGroup}>
-        <label style={styles.label}>CA-125</label>
-        <input name="ca125" type="number" style={styles.input} value={datos.ca125 || ''} onChange={onChange} placeholder="U/mL" />
-      </div>
-
-      <div style={{ ...styles.inputGroup, gridColumn: '1/-1' }}>
-        <label style={styles.label}>Contexto</label>
-        <select name="etiqueta" style={styles.selector} value={datos.etiqueta || ''} onChange={onChange}>
-          <option value="">Sin contexto definido</option>
-          {Object.keys(ETIQUETAS_CONFIG).map(key => (
-            <option key={key} value={key}>{ETIQUETAS_CONFIG[key].label}</option>
-          ))}
-        </select>
-      </div>
-
-      <div style={{ ...styles.inputGroup, gridColumn: '1/-1' }}>
-        <label style={styles.label}>Notas</label>
-        <textarea name="notas" style={{ ...styles.input, minHeight: '80px' }} value={datos.notas || ''} onChange={onChange} placeholder="Opcional..." />
-      </div>
-    </>
-  );
-
-  // Si pedimos sinContenedor (para el Modal), devolvemos solo los inputs
-  if (sinContenedor) return contenido;
-
-  // Si no (para el Formulario principal), devolvemos el grid normal
   return (
     <div style={{ ...styles.formFlex, textAlign: 'left' }}>
       {contenido}

@@ -21,7 +21,7 @@ export const escanearMedicionConIA = async (archivo) => {
 
     // Prompt optimizado para tu dispositivo Hylogy
     const prompt = `Actúa como OCR médico. Extrae valores de la imagen.
-    Responde solo JSON: {"tension": "SYS/DIA", "pulso": int, "oxigeno": int}.
+    Responde solo JSON: {"tension": "SYS/DIA", "pulso": int, "oxigeno": int, "peso": float}.
     Si falta un dato usa null. No escribas nada más.`;
 
     const result = await model.generateContent([

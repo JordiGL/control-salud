@@ -28,34 +28,33 @@ const Formulario = ({ formData, setFormData, guardarRegistro }) => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  // 1. Recibe datos de ScannerIA pero NO los guarda todavía en formData
+  // Recibe datos de ScannerIA pero NO los guarda todavía en formData
   const recibirDatosIA = (datos) => {
     setDatosTemporalesIA(datos); // Abrirá el modal de confirmación
   };
 
-  // 2. Acción: Sí, guardar ahora (Guardado Directo)
   const confirmarYGuardarIA = () => {
     const datosFinales = {
       ...formData,
       tension: datosTemporalesIA.tension || formData.tension,
       pulso: datosTemporalesIA.pulso || formData.pulso,
       oxigeno: datosTemporalesIA.oxigeno || formData.oxigeno,
+      peso: datosTemporalesIA.peso || formData.peso,
     };
     
-    // Llamamos a guardar con el segundo argumento de datosDirectos
     guardarRegistro(null, datosFinales);
     setDatosTemporalesIA(null);
   };
 
-  // 3. Acción: Corregir manualmente
   const corregirManualmente = () => {
     setFormData(prev => ({
       ...prev,
       tension: datosTemporalesIA.tension || prev.tension,
       pulso: datosTemporalesIA.pulso || prev.pulso,
-      oxigeno: datosTemporalesIA.oxigeno || prev.oxigeno
+      oxigeno: datosTemporalesIA.oxigeno || prev.oxigeno,
+      peso: datosTemporalesIA.peso || prev.peso
     }));
-    setDatosTemporalesIA(null); // Cierra el modal y deja los datos en los inputs
+    setDatosTemporalesIA(null);
   };
 
   const validarYGuardar = (e) => {

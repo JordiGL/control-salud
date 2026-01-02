@@ -13,7 +13,7 @@ const Historial = ({ registros, esAdmin, deleteDoc, db, doc, metricaSeleccionada
         >
           Historial
         </button>
-        {['tension', 'pulso', 'oxigeno', 'ca125'].map(m => (
+        {['tension', 'pulso', 'oxigeno', 'peso', 'ca125'].map(m => (
           <button 
             key={m}
             onClick={() => setMetricaSeleccionada(m)} 

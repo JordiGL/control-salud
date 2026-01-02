@@ -320,4 +320,10 @@ export const styles = {
     fontSize: "0.9rem",
     transition: "all 0.2s",
   },
+  selectorFiltro: {
+    fontSize: "0.85rem",
+    padding: "8px 12px",
+    width: "auto",
+    cursor: "pointer",
+  },
 };

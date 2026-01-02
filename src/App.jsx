@@ -6,6 +6,7 @@ import Header from './components/Header';
 import Formulario from './components/Formulario';
 import Historial from './components/Historial';
 import Grafica from './components/Grafica';
+import { CONFIG_CAMPOS } from './constants/campos';
 import { styles } from './styles/styles';
 
 const EMAIL_ADMIN = "golojodev@gmail.com";
@@ -14,14 +15,11 @@ function App() {
   const [registros, setRegistros] = useState([]);
   const [usuario, setUsuario] = useState(null);
   const [metricaSeleccionada, setMetricaSeleccionada] = useState(null);
-  const [formData, setFormData] = useState({ 
-    tension: '', 
-    pulso: '', 
-    oxigeno: '', 
-    ca125: '', 
-    etiqueta: '',
-    notas: '' 
-  });
+  const estadoInicial = CONFIG_CAMPOS.reduce((acc, campo) => {
+    acc[campo.id] = campo.defaultValue;
+    return acc;
+  }, {})
+  const [formData, setFormData] = useState(estadoInicial);
 
   useEffect(() => {
     onAuthStateChanged(auth, setUsuario);
@@ -48,7 +46,7 @@ function App() {
     });
   
     // Limpiamos el formulario
-    setFormData({ tension: '', pulso: '', oxigeno: '', ca125: '', etiqueta: '', notas: '' });
+    setFormData(estadoInicial);
   };
 
   return (

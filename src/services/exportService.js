@@ -1,3 +1,5 @@
+import { CONFIG_CAMPOS } from "../constants/campos";
+
 // Función auxiliar para evitar valores vacíos en los reportes
 const limpiarDato = (dato) => dato || "-";
 
@@ -6,24 +8,24 @@ export const exportToCSV = (datos) => {
   const headers = [
     "Fecha",
     "Hora",
-    "Tension",
-    "Pulso",
-    "Oxigeno",
-    "CA125",
-    "Contexto",
-    "Notas",
+    ...CONFIG_CAMPOS.filter((c) => c.exportar).map((c) => c.label),
   ];
 
-  const rows = datos.map((r) => [
-    r.fecha,
-    r.hora,
-    limpiarDato(r.tension),
-    limpiarDato(r.pulso),
-    limpiarDato(r.oxigeno),
-    limpiarDato(r.ca125),
-    limpiarDato(r.etiqueta),
-    `"${limpiarDato(r.notas).replace(/"/g, '""')}"`, // Protege comas dentro de las notas
-  ]);
+  const rows = datos.map((r) => {
+    // 2. Generamos las filas dinámicamente
+    const filaDinamica = CONFIG_CAMPOS.filter((c) => c.exportar).map(
+      (campo) => {
+        let valor = r[campo.id];
+        // Si es notas, aplicamos el formato especial de comillas
+        if (campo.id === "notas") {
+          return `"${limpiarDato(valor).replace(/"/g, '""')}"`;
+        }
+        return limpiarDato(valor);
+      }
+    );
+
+    return [r.fecha, r.hora, ...filaDinamica];
+  });
 
   // \uFEFF es el BOM para que Excel detecte correctamente acentos y símbolos
   const csvContent =

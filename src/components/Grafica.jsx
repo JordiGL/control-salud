@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
 import { styles } from '../styles/styles';
 import MenuExportar from './MenuExportar';
-import { ETIQUETAS_CONFIG, capitalizar } from '../constants/metricas';
+import { ETIQUETAS_CONFIG, LUGARES_CONFIG, capitalizar } from '../constants/metricas';
 
 const COLORES_GRAFICA = {
   sistolica: '#1e40af', 
@@ -12,12 +12,11 @@ const COLORES_GRAFICA = {
   texto: '#64748b' 
 };
 
-// Tooltip Personalizado Corregido
+// Tooltip Personalizado
 const CustomTooltip = ({ active, payload, label }) => {
   if (active && payload && payload.length) {
     const data = payload[0].payload; 
     
-    // Buscamos el nombre amigable en la configuración centralizada
     const textoEtiqueta = ETIQUETAS_CONFIG[data.etiquetaOriginal]?.label || capitalizar(data.etiquetaOriginal);
 
     return (
@@ -28,7 +27,7 @@ const CustomTooltip = ({ active, payload, label }) => {
         boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
         border: 'none',
         fontSize: '0.8rem',
-        pointerEvents: 'none' // Evita interferencias con el mouse
+        pointerEvents: 'none'
       }}>
         <p style={{ margin: '0 0 8px', fontWeight: 'bold', color: '#1e293b', borderBottom: '1px solid #f1f5f9', paddingBottom: '4px' }}>
           {data.tiempoCompleto || label}
@@ -40,10 +39,17 @@ const CustomTooltip = ({ active, payload, label }) => {
           </p>
         ))}
 
+        {/* Mostrar Lugar del Peso */}
+        {data.lugarPeso && (
+           <div style={{ marginTop: '4px', fontSize: '0.75rem', color: '#64748b', display: 'flex', alignItems: 'center', gap: '4px' }}>
+             <span>📍</span> {data.lugarPeso}
+           </div>
+        )}
+
         {data.etiquetaOriginal && (
           <div style={{ marginTop: '8px', paddingTop: '8px', borderTop: '1px dashed #e2e8f0' }}>
             <p style={{ margin: 0, color: '#0369a1', fontWeight: '500' }}>
-              📍 {textoEtiqueta}
+              🏷️ {textoEtiqueta}
             </p>
           </div>
         )}
@@ -64,28 +70,37 @@ const CustomTooltip = ({ active, payload, label }) => {
 const Grafica = ({ registros, metricaSeleccionada }) => {
   const [rangoTiempo, setRangoTiempo] = useState('todo'); 
   const [franjaHoraria, setFranjaHoraria] = useState('todo'); 
-  const [etiquetaFiltro, setEtiquetaFiltro] = useState('todas');
+  const [etiquetaFiltro, setEtiquetaFiltro] = useState('todos');
+  const [lugarFiltro, setLugarFiltro] = useState('todos');
   
   const esTension = metricaSeleccionada === 'tension';
 
   const registrosFiltrados = useMemo(() => {
     let filtrados = registros;
+
     if (rangoTiempo !== 'todo') {
       const ahora = Date.now();
       const limite = rangoTiempo === 'semana' ? ahora - 604800000 : ahora - 2592000000;
       filtrados = filtrados.filter(reg => reg.timestamp >= limite);
     }
+
     if (franjaHoraria !== 'todo') {
       filtrados = filtrados.filter(reg => {
         const horaNumerica = parseInt(reg.hora.split(':')[0], 10);
         return franjaHoraria === 'mañana' ? (horaNumerica >= 0 && horaNumerica < 12) : (horaNumerica >= 12 && horaNumerica < 24);
       });
     }
-    if (etiquetaFiltro !== 'todas') {
+
+    if (etiquetaFiltro !== 'todos') {
       filtrados = filtrados.filter(reg => reg.etiqueta === etiquetaFiltro);
     }
+
+    if (metricaSeleccionada === 'peso' && lugarFiltro !== 'todos') {
+      filtrados = filtrados.filter(reg => reg.lugarPeso === lugarFiltro);
+    }
+
     return filtrados;
-  }, [registros, rangoTiempo, franjaHoraria, etiquetaFiltro]);
+  }, [registros, rangoTiempo, franjaHoraria, etiquetaFiltro, lugarFiltro, metricaSeleccionada]);
 
   const datosGrafica = useMemo(() => {
     return registrosFiltrados.map(r => ({
@@ -93,6 +108,7 @@ const Grafica = ({ registros, metricaSeleccionada }) => {
       tiempoCompleto: `${r.fecha} | ${r.hora}`,
       etiquetaOriginal: r.etiqueta,
       notasOriginales: r.notas,
+      lugarPeso: r.lugarPeso,
       sistolica: esTension ? parseFloat((r.tension || "").split('/')[0]) : null,
       diastolica: esTension ? parseFloat((r.tension || "").split('/')[1]) : null,
       valor: !esTension ? parseFloat(r[metricaSeleccionada]) : null
@@ -101,11 +117,22 @@ const Grafica = ({ registros, metricaSeleccionada }) => {
 
   const stats = useMemo(() => {
     if (datosGrafica.length === 0) return null;
-    const calcularValores = (arr) => ({
-      max: Math.max(...arr),
-      min: Math.min(...arr),
-      avg: Math.round(arr.reduce((a, b) => a + b, 0) / arr.length)
-    });
+
+    const calcularValores = (arr) => {
+      const suma = arr.reduce((a, b) => a + b, 0);
+      const promedio = suma / arr.length;
+
+      const promedioFinal = metricaSeleccionada === 'peso'
+        ? Math.round(promedio * 10) / 10 
+        : Math.round(promedio);
+
+      return {
+        max: Math.max(...arr),
+        min: Math.min(...arr),
+        avg: promedioFinal
+      };
+    };
+
     if (esTension) {
       return {
         sis: calcularValores(datosGrafica.map(d => d.sistolica)),
@@ -113,13 +140,15 @@ const Grafica = ({ registros, metricaSeleccionada }) => {
       };
     }
     return { normal: calcularValores(datosGrafica.map(d => d.valor)) };
-  }, [datosGrafica, esTension]);
+  }, [datosGrafica, esTension, metricaSeleccionada]);
 
   const getEstiloBoton = (tipo, valorActual, variante = 'normal') => {
     const isActive = tipo === valorActual;
     const estiloVariante = variante === 'am' ? styles.btnAM : variante === 'pm' ? styles.btnPM : styles.btnFiltroActivo;
     return { ...styles.btnFiltro, ...(isActive ? estiloVariante : {}) };
   };
+
+  const colorLinea = COLORES_GRAFICA.general;
 
   return (
     <div style={styles.chartCard}>
@@ -138,6 +167,8 @@ const Grafica = ({ registros, metricaSeleccionada }) => {
       </div>
 
       <div className="no-print" style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '25px', alignItems: 'center' }}>
+        
+        {/* BOTONES DE TIEMPO */}
         <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', justifyContent: 'center' }}>
           {['semana', 'mes', 'todo'].map(r => (
             <button key={r} onClick={() => setRangoTiempo(r)} style={getEstiloBoton(r, rangoTiempo)}>
@@ -150,17 +181,47 @@ const Grafica = ({ registros, metricaSeleccionada }) => {
           <button onClick={() => setFranjaHoraria('tarde')} style={getEstiloBoton('tarde', franjaHoraria, 'pm')}>PM</button>
         </div>
 
-        <div style={{ width: '100%', maxWidth: '320px' }}>
-          <select 
-            style={{...styles.selector, fontSize: '0.85rem', padding: '8px 12px'}} 
-            value={etiquetaFiltro}
-            onChange={(e) => setEtiquetaFiltro(e.target.value)}
-          >
-            <option value="todas">Filtrar por contexto</option>
+        {/* --- CONTENEDOR DE FILTROS (LADO A LADO) --- */}
+        <div style={{ 
+          display: 'flex', 
+          flexWrap: 'wrap',
+          gap: '10px',
+          justifyContent: 'center', 
+          width: '100%'
+        }}>
+          
+          {/* SELECTOR DE CONTEXTO */}
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+            <label style={{ ...styles.label}}>Contextos</label>
+            <select 
+              style={{ ...styles.selector, ...styles.selectorFiltro, minWidth: "170px"}} 
+              value={etiquetaFiltro}
+              onChange={(e) => setEtiquetaFiltro(e.target.value)}
+            >
+              <option value="todos">Todos</option>
               {Object.keys(ETIQUETAS_CONFIG).map(key => (
                 <option key={key} value={key}>{ETIQUETAS_CONFIG[key].label}</option>
               ))}
-          </select>
+            </select>
+          </div>
+
+          {/* SELECTOR DE LUGAR (Solo Peso) */}
+          {metricaSeleccionada === 'peso' && (
+             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+               <label style={{ ...styles.label}}>Lugares</label>
+               <select 
+                 style={{ ...styles.selector, ...styles.selectorFiltro, minWidth: "120px"}} 
+                 value={lugarFiltro}
+                 onChange={(e) => setLugarFiltro(e.target.value)}
+               >
+                <option value="todos">Todos</option>
+                {/* Generamos las opciones desde la config central */}
+                {Object.keys(LUGARES_CONFIG).map(key => (
+                  <option key={key} value={key}>{LUGARES_CONFIG[key].label}</option>
+                ))}
+               </select>
+             </div>
+          )}
         </div>
       </div>
 
@@ -202,7 +263,7 @@ const Grafica = ({ registros, metricaSeleccionada }) => {
                     <Area type="monotone" dataKey="diastolica" stroke={COLORES_GRAFICA.diastolica} fillOpacity={0} fill="transparent" strokeWidth={3} name="Diastólica" dot={{r:3}} />
                   </>
                 ) : (
-                  <Area type="monotone" dataKey="valor" stroke={COLORES_GRAFICA.general} fillOpacity={0.1} fill={COLORES_GRAFICA.general} strokeWidth={3} dot={{r:4}} name={capitalizar(metricaSeleccionada)} />
+                  <Area type="monotone" dataKey="valor" stroke={colorLinea} fillOpacity={0.1} fill={colorLinea} strokeWidth={3} dot={{r:4}} name={capitalizar(metricaSeleccionada)} />
                 )}
               </AreaChart>
             </ResponsiveContainer>

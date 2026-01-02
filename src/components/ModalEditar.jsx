@@ -17,6 +17,20 @@ const ModalEditar = ({ isOpen, reg, onConfirm, onCancel }) => {
     setEditData(prev => ({ ...prev, [name]: value }));
   };
 
+  // --- FUNCIÓN HELPER PARA ARREGLAR LA FECHA ---
+  // Convierte DD/MM/YYYY (o D/M/YYYY) a YYYY-MM-DD con ceros obligatorios
+  const obtenerFechaInput = (fecha) => {
+    if (!fecha) return '';
+    if (fecha.includes('-')) return fecha; // Ya está en formato correcto
+
+    if (fecha.includes('/')) {
+      const [dia, mes, anyo] = fecha.split('/');
+      // padStart(2, '0') asegura que '1' se convierta en '01'
+      return `${anyo}-${mes.padStart(2, '0')}-${dia.padStart(2, '0')}`;
+    }
+    return '';
+  };
+
   const handleGuardar = () => {
     let year, month, day;
     const fechaActual = editData.fecha;
@@ -29,13 +43,14 @@ const ModalEditar = ({ isOpen, reg, onConfirm, onCancel }) => {
       // Viene del registro ya formateado (DD/MM/YYYY)
       [day, month, year] = fechaActual.split('/');
     } else {
-      // Fallback por seguridad
       onConfirm(editData);
       return;
     }
 
-    const fechaFormateada = `${day}/${month}/${year}`;
+    // Al guardar, volvemos a formatear a DD/MM/YYYY para la visualización
+    const fechaFormateada = `${day.padStart(2, '0')}/${month.padStart(2, '0')}/${year}`;
     const [hours, minutes] = editData.hora.split(':');
+    
     const nuevoTimestamp = new Date(year, month - 1, day, hours, minutes).getTime();
 
     onConfirm({
@@ -58,10 +73,8 @@ const ModalEditar = ({ isOpen, reg, onConfirm, onCancel }) => {
               name="fecha" 
               type="date" 
               style={styles.input} 
-              // Convertimos siempre a YYYY-MM-DD para que el input lo entienda
-              value={editData.fecha.includes('/') 
-                ? editData.fecha.split('/').reverse().join('-') 
-                : editData.fecha} 
+              // APLICAMOS LA CORRECCIÓN AQUÍ
+              value={obtenerFechaInput(editData.fecha)} 
               onChange={manejarCambio} 
             />
           </div>

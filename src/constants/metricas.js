@@ -8,6 +8,13 @@ export const ETIQUETAS_CONFIG = {
   // Aquí es donde añadirás los nuevos en el futuro
 };
 
+export const LUGARES_CONFIG = {
+  Casa: { label: "🏠 Casa" },
+  Farmacia: { label: "💊 Farmacia" },
+  CAP: { label: "🏥 CAP" },
+  ICO: { label: "🏢 ICO" },
+};
+
 // Función útil para Capitalizar textos (Primera mayúscula)
 export const capitalizar = (str) => {
   if (!str) return "";
