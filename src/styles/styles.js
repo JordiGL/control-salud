@@ -327,4 +327,15 @@ export const styles = {
     width: "auto",
     cursor: "pointer",
   },
+  pesoContainer: {
+    gridColumn: "1 / -1",
+    backgroundColor: "#f8fafc",
+    padding: "15px",
+    borderRadius: "12px",
+    border: "1px dashed #cbd5e1",
+    display: "grid",
+    gridTemplateColumns: "120px 1fr",
+    gap: "15px",
+    alignItems: "start",
+  },
 };
