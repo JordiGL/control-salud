@@ -74,6 +74,8 @@ const Grafica = ({ registros, metricaSeleccionada }) => {
   const [lugarFiltro, setLugarFiltro] = useState('todos');
   
   const esTension = metricaSeleccionada === 'tension';
+  // Detectamos si es CA125 para ocultar el promedio luego
+  const esCA125 = metricaSeleccionada === 'ca125';
 
   const registrosFiltrados = useMemo(() => {
     let filtrados = registros;
@@ -215,7 +217,6 @@ const Grafica = ({ registros, metricaSeleccionada }) => {
                  onChange={(e) => setLugarFiltro(e.target.value)}
                >
                 <option value="todos">Todos</option>
-                {/* Generamos las opciones desde la config central */}
                 {Object.keys(LUGARES_CONFIG).map(key => (
                   <option key={key} value={key}>{LUGARES_CONFIG[key].label}</option>
                 ))}
@@ -294,9 +295,26 @@ const Grafica = ({ registros, metricaSeleccionada }) => {
                   </div>
                 </>
               ) : (
-                <div style={{...styles.statsSummaryGrid, marginTop: '0', paddingTop: '5px', borderTop: 'none'}}>
+                <div style={{
+                    ...styles.statsSummaryGrid, 
+                    marginTop: '0', 
+                    paddingTop: '5px', 
+                    borderTop: 'none',
+                    // Si es CA125 usamos 2 columnas, si no 3
+                    gridTemplateColumns: esCA125 ? '1fr 1fr' : '1fr 1fr 1fr' 
+                }}>
                   <div style={styles.statSummaryItem}><span style={styles.statSummaryLabel}>MÁXIMO</span><strong style={styles.statSummaryValue}>{stats.normal.max}</strong></div>
-                  <div style={styles.statSummaryItem}><span style={styles.statSummaryLabel}>PROMEDIO</span><strong style={{ ...styles.statSummaryValue, color: '#1e293b' }}>{stats.normal.avg}</strong></div>
+                  
+                  {/* Solo mostramos Promedio si NO es CA125 */}
+                  {!esCA125 && (
+                    <div style={styles.statSummaryItem}>
+                        <span style={styles.statSummaryLabel}>PROMEDIO</span>
+                        <strong style={{ ...styles.statSummaryValue, color: '#1e293b' }}>
+                            {stats.normal.avg}
+                        </strong>
+                    </div>
+                  )}
+
                   <div style={styles.statSummaryItem}><span style={styles.statSummaryLabel}>MÍNIMO</span><strong style={styles.statSummaryValue}>{stats.normal.min}</strong></div>
                 </div>
               )}
