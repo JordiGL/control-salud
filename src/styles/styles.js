@@ -96,6 +96,7 @@ export const styles = {
   label: {
     fontSize: "0.8rem",
     fontWeight: "bold",
+    minHeight: "15px",
     marginBottom: "4px",
     color: "#4b5563",
   },

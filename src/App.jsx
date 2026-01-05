@@ -36,7 +36,12 @@ function App() {
     if (!esAdmin) return;
   
     // Si vienen datosDirectos (desde el Modal de IA), los usamos. Si no, usamos formData.
-    const datosAGuardar = datosDirectos || formData;
+    let datosAGuardar = datosDirectos ? { ...datosDirectos } : { ...formData };
+
+    // Si no hay peso escrito, borramos el lugar para no ensuciar la base de datos
+    if (!datosAGuardar.peso) {
+      datosAGuardar.lugarPeso = "";
+    }
   
     await addDoc(collection(db, "mediciones"), { 
       ...datosAGuardar, 

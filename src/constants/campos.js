@@ -45,14 +45,20 @@ export const CONFIG_CAMPOS = [
   },
   {
     id: "lugarPeso",
-    label: "¿Dónde?",
+    label: "",
     type: "select",
-    defaultValue: "Casa",
+    defaultValue: "",
     // Generamos las opciones dinámicamente desde la config central
-    options: Object.keys(LUGARES_CONFIG).map((key) => ({
-      value: key,
-      label: LUGARES_CONFIG[key].label,
-    })),
+    options: [
+      // Añadimos una opción vacía inicial
+      { value: "", label: "¿Dónde?" },
+
+      // Mapeamos el resto de opciones
+      ...Object.keys(LUGARES_CONFIG).map((key) => ({
+        value: key,
+        label: LUGARES_CONFIG[key].label,
+      })),
+    ],
     exportar: true,
   },
   {
