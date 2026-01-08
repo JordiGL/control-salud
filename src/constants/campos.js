@@ -1,7 +1,7 @@
-// src/constants/campos.js
 import { ETIQUETAS_CONFIG, LUGARES_CONFIG } from "./metricas";
 
 export const CONFIG_CAMPOS = [
+  // --- FILA 1 (3 columnas) ---
   {
     id: "tension",
     label: "Tensión",
@@ -26,6 +26,8 @@ export const CONFIG_CAMPOS = [
     defaultValue: "",
     exportar: true,
   },
+
+  // --- FILA 2 (CA-125 + Contexto doble) ---
   {
     id: "ca125",
     label: "CA-125",
@@ -35,39 +37,11 @@ export const CONFIG_CAMPOS = [
     exportar: true,
   },
   {
-    id: "peso",
-    label: "Peso",
-    type: "number",
-    step: "0.1",
-    placeholder: "Kg",
-    defaultValue: "",
-    exportar: true,
-  },
-  {
-    id: "lugarPeso",
-    label: "",
-    type: "select",
-    defaultValue: "",
-    // Generamos las opciones dinámicamente desde la config central
-    options: [
-      // Añadimos una opción vacía inicial
-      { value: "", label: "¿Dónde?" },
-
-      // Mapeamos el resto de opciones
-      ...Object.keys(LUGARES_CONFIG).map((key) => ({
-        value: key,
-        label: LUGARES_CONFIG[key].label,
-      })),
-    ],
-    exportar: true,
-  },
-  {
     id: "etiqueta",
     label: "Contexto",
     type: "select",
-    fullWidth: true, // Propiedad personalizada para el CSS
+    gridColumn: "span 2", // <--- ESTA ES LA CLAVE (ocupa 2 huecos)
     defaultValue: "",
-    // Convertimos tus etiquetas importadas al formato compatible
     options: [
       { value: "", label: "Sin contexto definido" },
       ...Object.keys(ETIQUETAS_CONFIG).map((key) => ({
@@ -77,6 +51,35 @@ export const CONFIG_CAMPOS = [
     ],
     exportar: true,
   },
+
+  // --- FILA 3 (Peso ocupa todo el ancho) ---
+  {
+    id: "peso",
+    label: "Peso",
+    type: "number",
+    step: "0.1",
+    placeholder: "Kg",
+    defaultValue: "",
+    fullWidth: true,
+    exportar: true,
+  },
+  // lugarPeso se renderiza dentro de peso, pero debe estar en la lista
+  {
+    id: "lugarPeso",
+    label: "",
+    type: "select",
+    defaultValue: "",
+    options: [
+      { value: "", label: "¿Dónde?" },
+      ...Object.keys(LUGARES_CONFIG).map((key) => ({
+        value: key,
+        label: LUGARES_CONFIG[key].label,
+      })),
+    ],
+    exportar: true,
+  },
+
+  // --- FILA 4 (Notas ocupa todo el ancho) ---
   {
     id: "notas",
     label: "Notas",
