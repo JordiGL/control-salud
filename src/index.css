@@ -188,3 +188,68 @@
     font-size: 12pt !important; /* Tamaño físico de fuente */
   }
 }
+
+/* =========================================
+   ESTILOS DEL FORMULARIO RESPONSIVO
+   ========================================= */
+
+/* 1. Contenedor Principal */
+.form-responsive-grid {
+  display: grid;
+  gap: 15px;
+  width: 100%;
+  /* MÓVIL POR DEFECTO: 1 Columna */
+  grid-template-columns: 1fr;
+  /* LIMITADOR DE ANCHO PARA PC */
+  max-width: 900px;
+}
+
+/* 2. Inputs Estándar */
+.std-input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  background-color: #fff;
+  font-family: inherit;
+  min-width: 0; /* Evita desbordamientos en grid */
+}
+
+/* 3. Grupo Peso (Contenedor Gris) */
+.peso-group {
+  background-color: #f8fafc;
+  padding: 15px;
+  border-radius: 12px;
+  border: 1px dashed #cbd5e1;
+  display: flex;
+  gap: 15px;
+  flex-direction: column; /* MÓVIL: Vertical */
+}
+
+.input-wrapper {
+  width: 100%;
+}
+
+/* --- MEDIA QUERY: PANTALLAS GRANDES (> 650px) --- */
+@media (min-width: 650px) {
+  .form-responsive-grid {
+    /* 3 columnas */
+    grid-template-columns: 1fr 1fr 1fr;
+  }
+
+  /* Clases de utilidad para Grid */
+  .col-full {
+    grid-column: 1 / -1;
+  }
+  .col-span-2 {
+    grid-column: span 2;
+  }
+
+  /* Peso horizontal en PC */
+  .peso-group {
+    display: grid;
+    grid-template-columns: 120px 1fr;
+    align-items: start;
+  }
+}
